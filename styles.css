@@ -1,0 +1,103 @@
+/* ===== Suan Ban Kaew StoryMap — shared styles (works alongside Bootstrap 5 + Tailwind "tw-" utilities) ===== */
+@font-face {
+  font-family: "FC Mee Sakul Serif";
+  src: url("fonts/FCMeeSakulSerif-Bold.otf") format("opentype");
+  font-weight: 700; font-style: normal; font-display: swap;
+}
+
+:root {
+  /* สีประจำ: เขียว–ชมพู (มหาวิทยาลัยราชภัฏรำไพพรรณี) */
+  --paper:#F6F1E7; --paper-deep:#EDE4D3; --card:#FFFDF8; --line:#E3DACB;
+  --ink:#1F2A24; --ink-soft:#5B6660; --slate:#7A8A8E;
+  --forest:#2F5D46; --forest-dark:#1E3F2F; --moss:#8AA37B; --moss-soft:#DCE6D2;
+  --pink:#C24F7C; --pink-soft:#F9DDE7; --blossom:#E58FB0; --blossom-soft:#FCEAF0;
+  --me:#3B82C4;
+  --f-head: "FC Mee Sakul Serif", "Trirong", "Noto Serif Thai", Georgia, serif;
+  --f-body: "Anuphan", "Noto Sans Thai", "Leelawadee UI", system-ui, "PingFang SC", "Microsoft YaHei", sans-serif;
+  --f-script: "Charm", "Anuphan", cursive;
+  --shadow-soft: 0 8px 24px rgba(31,42,36,.10), 0 1px 3px rgba(31,42,36,.06);
+  --shadow-sheet: 0 -6px 30px rgba(31,42,36,.16);
+  --bs-body-font-family: var(--f-body);
+  --bs-body-color: var(--ink);
+  --bs-body-bg: var(--paper);
+}
+html { -webkit-text-size-adjust: 100%; }
+body { font-family: var(--f-body); color: var(--ink); background: var(--paper); line-height: 1.7; }
+a { color: var(--forest); }
+.ico { flex: none; display: inline-block; vertical-align: middle; }
+
+/* ---------- type ---------- */
+.t-display { font-family: var(--f-head); font-weight: 700; font-size: clamp(2.4rem, 9vw, 3.4rem); line-height: 1.32; letter-spacing: -.01em; margin: 0; }
+.t-h1 { font-family: var(--f-head); font-weight: 700; font-size: 1.85rem; line-height: 1.4; margin: 0; }
+.t-h2 { font-family: var(--f-head); font-weight: 700; font-size: 1.4rem; line-height: 1.45; margin: 0; }
+.t-h3 { font-family: var(--f-body); font-weight: 600; font-size: 1.06rem; line-height: 1.5; margin: 0; }
+.t-body { font-size: 1rem; line-height: 1.75; color: var(--ink-soft); }
+.t-small { font-size: .875rem; line-height: 1.6; color: var(--ink-soft); }
+.t-caps { font-size: .75rem; font-weight: 500; letter-spacing: .06em; text-transform: uppercase; color: var(--pink); }
+.t-script { font-family: var(--f-script); font-size: 1.3rem; line-height: 1.4; color: var(--pink); }
+.t-num { font-family: var(--f-body); font-weight: 600; font-size: 1.35rem; line-height: 1.2; }
+.t-quote { font-family: var(--f-head); font-size: 1.2rem; line-height: 1.7; color: var(--forest-dark); }
+
+/* ---------- buttons (Bootstrap .btn + our variants) ---------- */
+.btn { --bs-btn-font-family: var(--f-body); --bs-btn-font-weight: 600; --bs-btn-padding-x: 1.35rem; --bs-btn-padding-y: .8rem;
+  --bs-btn-border-radius: 999px; --bs-btn-border-width: 1.5px; --bs-btn-focus-box-shadow: 0 0 0 .25rem rgba(194,79,124,.3);
+  display: inline-flex; align-items: center; justify-content: center; gap: .5rem; line-height: 1.4; }
+.btn-forest { --bs-btn-color:#fff; --bs-btn-bg:var(--forest); --bs-btn-border-color:var(--forest);
+  --bs-btn-hover-color:#fff; --bs-btn-hover-bg:var(--forest-dark); --bs-btn-hover-border-color:var(--forest-dark);
+  --bs-btn-active-color:#fff; --bs-btn-active-bg:var(--forest-dark); --bs-btn-active-border-color:var(--forest-dark);
+  --bs-btn-disabled-bg:var(--forest); --bs-btn-disabled-border-color:var(--forest); }
+.btn-pink { --bs-btn-color:#fff; --bs-btn-bg:var(--pink); --bs-btn-border-color:var(--pink);
+  --bs-btn-hover-color:#fff; --bs-btn-hover-bg:#A93F68; --bs-btn-hover-border-color:#A93F68;
+  --bs-btn-active-color:#fff; --bs-btn-active-bg:#A93F68; --bs-btn-active-border-color:#A93F68; }
+.btn-card { --bs-btn-color:var(--forest); --bs-btn-bg:var(--card); --bs-btn-border-color:var(--line);
+  --bs-btn-hover-color:var(--forest-dark); --bs-btn-hover-bg:var(--moss-soft); --bs-btn-hover-border-color:var(--moss);
+  --bs-btn-active-color:var(--forest-dark); --bs-btn-active-bg:var(--moss-soft); --bs-btn-active-border-color:var(--moss);
+  --bs-btn-disabled-color:var(--slate); --bs-btn-disabled-bg:var(--card); --bs-btn-disabled-border-color:var(--line); }
+.btn-ghost { --bs-btn-color:var(--ink); --bs-btn-bg:transparent; --bs-btn-border-color:var(--line);
+  --bs-btn-hover-color:var(--ink); --bs-btn-hover-bg:var(--paper-deep); --bs-btn-hover-border-color:var(--line);
+  --bs-btn-disabled-color:var(--slate); --bs-btn-disabled-border-color:var(--line); }
+
+/* ---------- small parts ---------- */
+.chip { display: inline-flex; align-items: center; gap: .35rem; padding: .2rem .75rem; border-radius: 999px; font-size: .85rem; line-height: 1.6;
+  background: var(--moss-soft); color: var(--forest-dark); }
+.chip.pink { background: var(--pink-soft); color: var(--pink); }
+.chip.blossom { background: var(--blossom-soft); color: var(--ink); }
+.card-soft { background: var(--card); border: 1px solid var(--line); border-radius: 20px; }
+
+.num { width: 34px; height: 34px; border-radius: 50%; display: grid; place-items: center; flex: none;
+  font-weight: 600; font-size: .95rem; background: var(--card); color: var(--forest); border: 2px solid var(--forest); }
+.num.cur { background: var(--blossom); color: var(--ink); border-color: #fff; box-shadow: 0 0 0 2px var(--blossom); }
+.num.v { background: var(--forest); color: #fff; border-color: #fff; box-shadow: 0 0 0 2px var(--forest); }
+
+.lang-switch { display: inline-flex; gap: 2px; padding: 3px; border-radius: 999px; background: var(--paper-deep); }
+.lang-switch button { border: 0; background: transparent; color: var(--ink-soft); font: 500 .85rem/1.4 var(--f-body); padding: .3rem .7rem; border-radius: 999px; }
+.lang-switch button.on { background: var(--card); color: var(--ink); box-shadow: 0 1px 2px rgba(0,0,0,.06); }
+
+.photo { position: relative; overflow: hidden; background: var(--tone, var(--paper-deep)); display: grid; place-items: center; }
+.photo img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover; z-index: 1; }
+.photo .photo-ph { color: var(--ink); opacity: .3; }
+
+.icon-tile { width: 40px; height: 40px; border-radius: 12px; display: grid; place-items: center; flex: none; background: var(--moss-soft); color: var(--forest); }
+
+/* subtle paper grain for the human touch */
+.grain { position: relative; isolation: isolate; }
+.grain::after { content: ""; position: absolute; inset: 0; pointer-events: none; z-index: 2; opacity: .35; mix-blend-mode: multiply; border-radius: inherit;
+  background-image: url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='120' height='120'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .4  0 0 0 0 .35  0 0 0 0 .3  0 0 0 .18 0'/></filter><rect width='120' height='120' filter='url(%23n)'/></svg>"); }
+
+/* page width */
+.wrap { max-width: 560px; margin: 0 auto; padding-left: 20px; padding-right: 20px; }
+@media (min-width: 992px) { .wrap-wide { max-width: 1080px; } }
+
+/* timeline */
+.tl { list-style: none; margin: 0; padding: 0; }
+.tl li { display: flex; gap: 14px; }
+.tl .rail { display: flex; flex-direction: column; align-items: center; padding-top: 21px; }
+.tl .rail::after { content: ""; flex: 1; width: 2px; margin-top: 4px; background: repeating-linear-gradient(var(--moss) 0 4px, transparent 4px 9px); }
+.tl li:last-child .rail::after { display: none; }
+.tl .stop-card { flex: 1; min-width: 0; display: flex; align-items: center; gap: 12px; padding: 10px 14px 10px 10px; margin-bottom: 12px;
+  background: var(--card); border: 1px solid var(--line); border-radius: 18px; text-decoration: none; color: inherit; transition: transform .15s, box-shadow .15s; }
+.tl .stop-card:hover { transform: translateY(-1px); box-shadow: var(--shadow-soft); }
+.tl li:last-child .stop-card { background: var(--blossom-soft); border-color: var(--blossom); margin-bottom: 0; }
+.tl .photo { width: 56px; height: 56px; border-radius: 12px; }
+
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important; } }

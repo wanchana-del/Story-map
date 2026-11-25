@@ -1,0 +1,689 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>เส้นทางสู่สวนบ้านแก้ว</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.css">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+
+<script>
+/* =====================================================================
+   ข้อมูล — แก้ตรงนี้ที่เดียว (ข้อความมี 3 ภาษา: th / en / zh)
+   STOPS : จุดแวะตามลำดับ (แรก = ประตู 1, สุดท้าย = ปลายทาง)
+           img = ไฟล์รูปในโฟลเดอร์ images/   radius = ระยะ (เมตร) ที่นับว่า "ถึงจุดนี้แล้ว"
+   ROUTE : เส้นทางเดิน [lat, lng] จากประตู 1 ถึงวังสวนบ้านแก้ว (OSRM/OpenStreetMap)
+   CONFIG: ค่าตั้งระบบ
+   หมายเหตุ: ข้อความประวัติและคำแปลเป็น "ร่าง" ควรตรวจทานก่อนเผยแพร่
+   ===================================================================== */
+const SITE = {
+  title: { th: "เส้นทางสู่สวนบ้านแก้ว", en: "The Path to Suan Ban Kaew", zh: "班盖花园漫步之路" }
+};
+
+const CONFIG = {
+  walkSpeedKmh: 4.5,     // ใช้คำนวณเวลาเดินโดยประมาณ
+  kcalPerKm: 65,         // แคลอรี่ต่อกิโลเมตร (ผู้ใหญ่ ~60 กก.)
+  arriveRadius: 25,      // ค่าเริ่มต้น: เข้าใกล้จุดไม่เกินกี่เมตรถึงนับว่าถึง
+  offRouteMeters: 40,    // ห่างเส้นทางเกินกี่เมตรถึงเตือนว่าออกนอกเส้นทาง
+  maxAccuracy: 35,       // ไม่นับระยะทางถ้า GPS คลาดเคลื่อนเกินนี้ (เมตร)
+  simSpeedup: 6          // โหมดจำลองเดินเร็วกว่าจริงกี่เท่า
+};
+
+const STOPS = [
+  {
+    id: "gate1", lat: 12.660036, lng: 102.093498, img: "images/01-gate1.jpg",
+    kicker: { th: "จุดเริ่มต้น", en: "Starting point", zh: "起点" },
+    title:  { th: "ประตู 1", en: "Gate 1", zh: "1号门" },
+    text: {
+      th: "ประตูทางเข้าหลักฝั่งตะวันตกของมหาวิทยาลัยราชภัฏรำไพพรรณี ริมป้อมยามประตู 1 เริ่มต้นการเดินจากตรงนี้ ถนนในมหาวิทยาลัยร่มรื่นด้วยไม้ใหญ่ตลอดทาง",
+      en: "The western main entrance of Rambhai Barni Rajabhat University, beside the Gate 1 guardhouse. Start walking here; the campus roads are shaded by large trees the whole way.",
+      zh: "兰派芭妮皇家大学西侧的主入口，位于1号门岗亭旁。从这里开始步行，校园道路两旁绿树成荫。"
+    },
+    facts: { th: ["จุดจอดรถ / นัดพบ", "ป้อมยามประตู 1"], en: ["Parking / meeting point", "Gate 1 guardhouse"], zh: ["停车 / 集合点", "1号门岗亭"] }
+  },
+  {
+    id: "golf", lat: 12.661103, lng: 102.094781, img: "images/02-golf.jpg",
+    kicker: { th: "ระหว่างทาง", en: "Along the way", zh: "途中" },
+    title:  { th: "ทุ่งหญ้าสนามกอล์ฟ", en: "Golf Course Lawn", zh: "高尔夫球场草坪" },
+    text: {
+      th: "เดินขึ้นไปทางทิศเหนือ ผ่านแนวสนามกอล์ฟและศูนย์อำนวยการสนามกอล์ฟ พื้นที่โล่งกว้างที่ให้เห็นภูมิทัศน์เดิมของที่ดินสวนบ้านแก้ว",
+      en: "Head north past the golf course and its clubhouse. This wide open space gives a sense of the original landscape of the Suan Ban Kaew estate.",
+      zh: "向北走，经过高尔夫球场及其管理中心。开阔的草地让人感受到班盖花园原有的地貌风光。"
+    },
+    facts: { th: ["พื้นที่โล่ง", "จุดถ่ายภาพมุมกว้าง"], en: ["Open space", "Wide-angle photo spot"], zh: ["开阔地带", "广角拍照点"] }
+  },
+  {
+    id: "penghouse", lat: 12.662529, lng: 102.096109, img: "images/03-reuan-tan-peng.jpg",
+    kicker: { th: "หมู่เรือนประวัติศาสตร์", en: "Historic houses", zh: "历史建筑群" },
+    title:  { th: "เรือนท่านเป้ง", en: "Ruean Than Peng", zh: "坦彭屋 (Ruean Than Peng)" },
+    text: {
+      th: "เรือนหลังแรกในกลุ่มอาคารเก่าของสวนบ้านแก้ว เมื่อมาถึงตรงนี้ บรรยากาศจะเปลี่ยนจากถนนมหาวิทยาลัยเป็นสวนเก่าที่เงียบสงบ",
+      en: "The first of the old buildings of Suan Ban Kaew. From here the atmosphere changes from campus roads to a quiet historic garden.",
+      zh: "班盖花园老建筑群中的第一座房屋。到了这里，氛围从校园道路转为宁静的古老花园。"
+    },
+    facts: { th: ["อาคารเก่า", "เริ่มเข้าเขตสวนบ้านแก้ว"], en: ["Historic building", "Entering Suan Ban Kaew"], zh: ["老建筑", "进入班盖花园"] }
+  },
+  {
+    id: "monument", lat: 12.664382, lng: 102.097154, img: "images/04-monument.jpg",
+    kicker: { th: "จุดสักการะ", en: "Place of homage", zh: "瞻仰处" },
+    title:  { th: "อนุสาวรีย์สมเด็จพระนางเจ้ารำไพพรรณี", en: "Queen Rambhai Barni Monument", zh: "兰派芭妮王后纪念像" },
+    text: {
+      th: "พระบรมราชานุสาวรีย์สมเด็จพระนางเจ้ารำไพพรรณี พระบรมราชินีในรัชกาลที่ 7 ผู้เคยประทับ ณ สวนบ้านแก้ว และเป็นที่มาของชื่อมหาวิทยาลัย",
+      en: "A monument to Queen Rambhai Barni, consort of King Rama VII, who once lived at Suan Ban Kaew and after whom the university is named.",
+      zh: "拉玛七世王后兰派芭妮的纪念像。王后曾居住于班盖花园，大学亦以她的名字命名。"
+    },
+    facts: { th: ["จุดถวายสักการะ", "วงเวียนรอบอนุสาวรีย์"], en: ["Pay respects", "Roundabout around the monument"], zh: ["致敬瞻仰", "纪念像环岛"] }
+  },
+  {
+    id: "colorhouses", lat: 12.663250, lng: 102.096950, radius: 40, img: "images/05-color-houses.jpg",
+    kicker: { th: "หมู่เรือนประวัติศาสตร์", en: "Historic houses", zh: "历史建筑群" },
+    title:  { th: "เรือนเขียว · เรือนเทา · เรือนแดง", en: "Green, Grey & Red Houses", zh: "绿屋 · 灰屋 · 红屋" },
+    text: {
+      th: "กลุ่มเรือนที่เรียกตามสีของตัวเรือน ตั้งเรียงกันอยู่ในสวน เป็นส่วนหนึ่งของที่ประทับและที่พักของผู้ติดตามในอดีต",
+      en: "A group of houses named after their colours, set side by side in the garden. They were part of the royal residence and lodgings for the household in the past.",
+      zh: "以房屋颜色命名的一组建筑，错落于花园之中，昔日是王室寝宫及随从居所的一部分。"
+    },
+    facts: { th: ["เรือนเขียว", "เรือนเทา", "เรือนแดง"], en: ["Green House", "Grey House", "Red House"], zh: ["绿屋", "灰屋", "红屋"] }
+  },
+  {
+    id: "palace", lat: 12.663627, lng: 102.097224, img: "images/06-palace.jpg",
+    kicker: { th: "ปลายทาง", en: "Destination", zh: "终点" },
+    title:  { th: "วังสวนบ้านแก้ว · พระตำหนักเทา", en: "Wang Suan Ban Kaew · Grey Residence", zh: "班盖花园宫 · 灰色寝宫" },
+    text: {
+      th: "พระตำหนักที่ประทับของสมเด็จพระนางเจ้ารำไพพรรณีเมื่อครั้งประทับที่จันทบุรี ปัจจุบันจัดเป็นพิพิธภัณฑ์ให้เข้าชมเรื่องราวและของใช้ในพระองค์",
+      en: "The residence of Queen Rambhai Barni during her years in Chanthaburi. Today it is a museum displaying her story and personal belongings.",
+      zh: "兰派芭妮王后居住尖竹汶期间的寝宫，现已辟为博物馆，展示王后的生平故事与御用物品。"
+    },
+    facts: { th: ["พิพิธภัณฑ์", "ตรวจสอบเวลาเปิดก่อนเข้าชม"], en: ["Museum", "Check opening hours before visiting"], zh: ["博物馆", "参观前请确认开放时间"] }
+  }
+];
+
+const ROUTE = [[12.660036,102.093498],[12.66006,102.093592],[12.660105,102.093704],[12.660155,102.093812],[12.660288,102.094041],[12.661103,102.094781],[12.661214,102.094811],[12.662489,102.094642],[12.662616,102.094672],[12.662733,102.094803],[12.662747,102.094902],[12.662656,102.095788],[12.662684,102.095895],[12.66319,102.096316],[12.663421,102.096433],[12.663727,102.09658],[12.664038,102.096741],[12.664697,102.097067],[12.664754,102.097015],[12.664806,102.097034],[12.664826,102.097085],[12.664813,102.097122],[12.664762,102.097149],[12.664727,102.097178],[12.664667,102.097411],[12.664597,102.097598],[12.664533,102.09765],[12.664434,102.097678],[12.664322,102.097649],[12.664224,102.097599],[12.664082,102.097582],[12.663850,102.097480],[12.663627,102.097224]];
+/* ===================================================================== */
+
+const UI = {
+  th: {
+    start: "▶ เริ่มเดิน", pause: "⏸ พัก", resume: "▶ เดินต่อ", finish: "■ จบ", stops: "☰ จุดแวะ",
+    sim: "จำลองเดิน", simOn: "หยุดจำลอง", map: "แผนที่", sat: "ดาวเทียม", whole: "ทั้งเส้นทาง",
+    follow: "ติดตามตำแหน่ง", compass: "เข็มทิศ",
+    idle: "กด ▶ เริ่มเดิน เพื่อเปิด GPS (หรือกด จำลองเดิน เพื่อทดสอบ)",
+    locating: "กำลังหาตำแหน่ง GPS…",
+    toStart: (d) => `ไปจุดเริ่มต้น (ประตู 1) อีก ${d}`,
+    next: (n, name) => `ถัดไป: จุดที่ ${n} ${name}`,
+    nextDist: (d, t) => `อีก ${d} · ~${t}`,
+    offRoute: d => `⚠ ออกนอกเส้นทาง ${d}`,
+    arrived: name => `ถึงแล้ว: ${name}`,
+    allDone: "ถึงปลายทางแล้ว 🎉",
+    dist: "ระยะทาง", time: "เวลา", kcal: "แคลอรี่", visited: "ผ่านแล้ว", progress: "ความคืบหน้า",
+    noGps: "อุปกรณ์นี้ไม่รองรับ GPS", gpsDenied: "เปิด GPS ไม่ได้ — อนุญาตการเข้าถึงตำแหน่ง แล้วลองใหม่",
+    needHttps: "GPS บนมือถือใช้ได้เมื่อเปิดหน้าเว็บผ่าน https:// (เช่น GitHub Pages) เท่านั้น",
+    accuracy: a => `GPS ±${a} ม.`,
+    detail: "รายละเอียด", goHere: "ดูบนแผนที่", close: "ปิด",
+    stopN: n => `จุดที่ ${n}`, fromStart: d => `ห่างจากประตู 1 ${d}`, done: "✓ ผ่านแล้ว",
+    summary: "สรุปการเดิน", again: "เริ่มใหม่", cont: "เดินต่อ",
+    confirmEnd: "จบการเดินและดูสรุป?",
+    noPhoto: "ยังไม่มีรูป:", m: "ม.", km: "กม.", min: "นาที",
+    compassNo: "อุปกรณ์นี้ไม่มีเข็มทิศ"
+  },
+  en: {
+    start: "▶ Start", pause: "⏸ Pause", resume: "▶ Resume", finish: "■ Finish", stops: "☰ Stops",
+    sim: "Simulate", simOn: "Stop sim", map: "Map", sat: "Satellite", whole: "Whole route",
+    follow: "Follow me", compass: "Compass",
+    idle: "Press ▶ Start to turn on GPS (or Simulate to test)",
+    locating: "Finding your GPS position…",
+    toStart: (d) => `${d} to the start (Gate 1)`,
+    next: (n, name) => `Next: stop ${n} ${name}`,
+    nextDist: (d, t) => `${d} · ~${t}`,
+    offRoute: d => `⚠ Off route by ${d}`,
+    arrived: name => `Arrived: ${name}`,
+    allDone: "You've reached the destination 🎉",
+    dist: "Distance", time: "Time", kcal: "Calories", visited: "Visited", progress: "Progress",
+    noGps: "This device has no GPS", gpsDenied: "Can't access GPS — allow location access and try again",
+    needHttps: "On phones, GPS only works when the page is opened over https:// (e.g. GitHub Pages)",
+    accuracy: a => `GPS ±${a} m`,
+    detail: "Details", goHere: "Show on map", close: "Close",
+    stopN: n => `Stop ${n}`, fromStart: d => `${d} from Gate 1`, done: "✓ Visited",
+    summary: "Walk summary", again: "Start over", cont: "Keep walking",
+    confirmEnd: "Finish the walk and see the summary?",
+    noPhoto: "No photo yet:", m: "m", km: "km", min: "min",
+    compassNo: "No compass on this device"
+  },
+  zh: {
+    start: "▶ 开始", pause: "⏸ 暂停", resume: "▶ 继续", finish: "■ 结束", stops: "☰ 站点",
+    sim: "模拟步行", simOn: "停止模拟", map: "地图", sat: "卫星图", whole: "全程",
+    follow: "跟随位置", compass: "指南针",
+    idle: "点击 ▶ 开始 打开 GPS（或点击 模拟步行 进行测试）",
+    locating: "正在获取 GPS 位置…",
+    toStart: (d) => `距起点（1号门）${d}`,
+    next: (n, name) => `下一站：第 ${n} 站 ${name}`,
+    nextDist: (d, t) => `还有 ${d} · 约 ${t}`,
+    offRoute: d => `⚠ 偏离路线 ${d}`,
+    arrived: name => `已到达：${name}`,
+    allDone: "已到达终点 🎉",
+    dist: "距离", time: "时间", kcal: "卡路里", visited: "已到", progress: "进度",
+    noGps: "此设备不支持 GPS", gpsDenied: "无法使用 GPS — 请允许位置权限后重试",
+    needHttps: "手机上只有通过 https:// 打开网页（如 GitHub Pages）才能使用 GPS",
+    accuracy: a => `GPS ±${a} 米`,
+    detail: "详情", goHere: "在地图上查看", close: "关闭",
+    stopN: n => `第 ${n} 站`, fromStart: d => `距1号门 ${d}`, done: "✓ 已到",
+    summary: "步行总结", again: "重新开始", cont: "继续步行",
+    confirmEnd: "结束步行并查看总结？",
+    noPhoto: "暂无图片：", m: "米", km: "公里", min: "分钟",
+    compassNo: "此设备没有指南针"
+  }
+};
+const LANGS = [["th","ไทย"],["en","EN"],["zh","中文"]];
+</script>
+
+<style>
+*{box-sizing:border-box}
+html,body{margin:0;height:100%;overflow:hidden}
+body{font:15px/1.5 system-ui,-apple-system,"Segoe UI","Noto Sans Thai","Leelawadee UI","PingFang SC","Microsoft YaHei",sans-serif;color:#222;background:#fff}
+button{font:inherit;cursor:pointer}
+#map{position:absolute;top:48px;left:0;right:0;bottom:0}
+
+.top{position:absolute;top:0;left:0;right:0;z-index:1000;display:flex;align-items:center;gap:8px;padding:8px 10px;padding-top:max(8px,env(safe-area-inset-top));
+  background:#fff;border-bottom:1px solid #ddd}
+.top h1{font-size:16px;margin:0;flex:1;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.top select{font:inherit;padding:4px 6px;border:1px solid #ccc;border-radius:6px;background:#fff}
+
+.side{position:absolute;right:10px;top:64px;z-index:1000;display:flex;flex-direction:column;gap:6px;align-items:flex-end}
+.side button{background:#fff;border:1px solid #bbb;border-radius:8px;padding:6px 10px;box-shadow:0 1px 4px rgba(0,0,0,.15);font-size:13px}
+.side button.on{background:#1565c0;color:#fff;border-color:#1565c0}
+
+.panel{position:absolute;left:0;right:0;bottom:0;z-index:1000;background:#fff;border-top:1px solid #ddd;padding:10px 12px;padding-bottom:max(10px,env(safe-area-inset-bottom));
+  box-shadow:0 -2px 10px rgba(0,0,0,.08)}
+.status{font-weight:600;font-size:15px}
+.sub{font-size:13px;color:#555;min-height:19px}
+.warn{color:#c62828}
+.bar{height:6px;background:#eee;border-radius:3px;margin:8px 0;overflow:hidden}
+.bar i{display:block;height:100%;width:0;background:#2e7d32;transition:width .4s}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:4px;text-align:center;margin-bottom:8px}
+.stats b{display:block;font-size:17px}
+.stats span{font-size:11px;color:#666}
+.actions{display:flex;gap:6px}
+.actions button{flex:1;padding:10px 4px;border-radius:8px;border:1px solid #bbb;background:#f5f5f5;font-weight:600;font-size:14px}
+.actions button.primary{background:#2e7d32;color:#fff;border-color:#2e7d32}
+.actions button:disabled{opacity:.45;cursor:default}
+
+.toast{position:absolute;left:50%;top:64px;transform:translateX(-50%);z-index:1500;background:#2e7d32;color:#fff;padding:10px 16px;border-radius:8px;
+  box-shadow:0 2px 10px rgba(0,0,0,.25);font-weight:600;display:none;max-width:calc(100% - 20px);text-align:center}
+.toast.show{display:block}
+.toast.err{background:#c62828}
+
+.sheet{position:absolute;inset:0;z-index:2000;background:rgba(0,0,0,.45);display:none;align-items:flex-end;justify-content:center}
+.sheet.open{display:flex}
+.sheet .box{background:#fff;width:100%;max-width:560px;max-height:85%;overflow:auto;border-radius:12px 12px 0 0;padding:14px 16px 18px}
+.sheet h2{font-size:18px;margin:0 0 4px}
+.sheet .kick{font-size:12px;color:#666}
+.sheet .row{display:flex;gap:8px;margin-top:12px}
+.sheet .row button{flex:1;padding:10px;border-radius:8px;border:1px solid #bbb;background:#f5f5f5;font-weight:600}
+.sheet .row button.primary{background:#2e7d32;color:#fff;border-color:#2e7d32}
+.photo{margin:10px 0;width:100%;aspect-ratio:4/3;background:#eee;border-radius:8px;overflow:hidden;display:grid;place-items:center;font-size:12px;color:#777;text-align:center;padding:0}
+.photo img{width:100%;height:100%;object-fit:cover;display:block}
+.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
+.chips span{font-size:12px;background:#f0f0f0;border-radius:12px;padding:2px 10px}
+.list{list-style:none;margin:8px 0 0;padding:0}
+.list li{display:flex;align-items:center;gap:10px;padding:10px 4px;border-bottom:1px solid #eee;cursor:pointer}
+.list .n{width:28px;height:28px;border-radius:50%;border:2px solid #1565c0;color:#1565c0;display:grid;place-items:center;font-weight:700;flex:none;font-size:13px}
+.list li.v .n{background:#2e7d32;border-color:#2e7d32;color:#fff}
+.list li.cur .n{background:#f9a825;border-color:#f9a825;color:#000}
+.list .t{flex:1;min-width:0}
+.list .t small{display:block;color:#666;font-size:12px}
+.sum{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:10px}
+.sum div{background:#f5f5f5;border-radius:8px;padding:10px;text-align:center}
+.sum b{display:block;font-size:20px}
+
+.pin{width:28px;height:28px;border-radius:50%;background:#fff;border:2px solid #1565c0;color:#1565c0;display:grid;place-items:center;font:700 13px system-ui,sans-serif;box-shadow:0 1px 4px rgba(0,0,0,.35)}
+.pin.v{background:#2e7d32;border-color:#fff;color:#fff}
+.pin.cur{background:#f9a825;border-color:#fff;color:#000;transform:scale(1.2)}
+.me{position:relative;width:22px;height:22px}
+.me .dot{position:absolute;inset:3px;border-radius:50%;background:#1e88e5;border:3px solid #fff;box-shadow:0 0 0 1px rgba(0,0,0,.2)}
+.me .arrow{position:absolute;left:50%;top:-12px;width:0;height:0;margin-left:-7px;border:7px solid transparent;border-bottom:12px solid #1e88e5;
+  transform-origin:7px 23px;display:none}
+.me.has-heading .arrow{display:block}
+.leaflet-popup-content{margin:10px 12px;font-size:14px}
+.leaflet-popup-content button{margin-top:6px;padding:4px 10px;border:1px solid #bbb;border-radius:6px;background:#f5f5f5}
+</style>
+</head>
+<body>
+
+<div id="map"></div>
+
+<div class="top">
+  <h1 id="title"></h1>
+  <select id="lang" aria-label="Language"></select>
+</div>
+
+<div class="side">
+  <button type="button" id="bFollow" class="on"></button>
+  <button type="button" id="bCompass"></button>
+  <button type="button" id="bLayer"></button>
+  <button type="button" id="bWhole"></button>
+  <button type="button" id="bSim"></button>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<div class="panel">
+  <div class="status" id="status"></div>
+  <div class="sub" id="sub"></div>
+  <div class="bar"><i id="prog"></i></div>
+  <div class="stats">
+    <div><b id="sDist">0</b><span id="lDist"></span></div>
+    <div><b id="sTime">0:00</b><span id="lTime"></span></div>
+    <div><b id="sKcal">0</b><span id="lKcal"></span></div>
+    <div><b id="sVis">0/0</b><span id="lVis"></span></div>
+  </div>
+  <div class="actions">
+    <button type="button" id="bStart" class="primary"></button>
+    <button type="button" id="bEnd"></button>
+    <button type="button" id="bList"></button>
+  </div>
+</div>
+
+<div class="sheet" id="sheet"><div class="box" id="sheetBox"></div></div>
+
+<script>
+(function(){
+"use strict";
+const $ = s => document.querySelector(s);
+const esc = s => String(s).replace(/[&<>"]/g, c => ({ "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;" }[c]));
+
+/* ================= state ================= */
+const store = {
+  get(k, d){ try { const v = localStorage.getItem("bankaew-" + k); return v == null ? d : JSON.parse(v); } catch(_){ return d; } },
+  set(k, v){ try { localStorage.setItem("bankaew-" + k, JSON.stringify(v)); } catch(_){} }
+};
+let lang = (new URLSearchParams(location.search).get("lang")) || store.get("lang", "th");
+if (!UI[lang]) lang = "th";
+const T = () => UI[lang];
+const pick = v => (v && typeof v === "object" && !Array.isArray(v)) ? (v[lang] ?? v.th) : v;
+
+const S = {
+  mode: "idle",          // idle | running | paused | finished
+  source: null,          // gps | sim | drag
+  pos: null,             // {lat,lng,acc}
+  snap: null,            // {along, off, ll}
+  walked: 0,             // metres actually moved while running
+  elapsed: 0,            // ms while running
+  runSince: 0,
+  lastCounted: null,     // last [lat,lng] used for distance
+  visited: new Set(store.get("visited", [])),
+  heading: null,
+  follow: true
+};
+
+/* ================= geometry (local metres) ================= */
+const lat0 = ROUTE[0][0], lng0 = ROUTE[0][1];
+const KX = 111320 * Math.cos(lat0 * Math.PI/180), KY = 110540;
+const toXY = ll => [(ll[1]-lng0)*KX, (ll[0]-lat0)*KY];
+const toLL = xy => [xy[1]/KY + lat0, xy[0]/KX + lng0];
+const dist = (a,b) => { const p = toXY(a), q = toXY(b); return Math.hypot(p[0]-q[0], p[1]-q[1]); };
+
+const RXY = ROUTE.map(toXY);
+const CUM = [0];
+for (let i=1;i<RXY.length;i++) CUM.push(CUM[i-1] + Math.hypot(RXY[i][0]-RXY[i-1][0], RXY[i][1]-RXY[i-1][1]));
+const TOTAL = CUM[CUM.length-1];
+
+function snapToRoute(ll, minSeg = 0, maxSeg = RXY.length-2){
+  const p = toXY(ll); let best = { off: Infinity };
+  for (let i=minSeg;i<=maxSeg;i++){
+    const a = RXY[i], b = RXY[i+1], dx = b[0]-a[0], dy = b[1]-a[1], L2 = dx*dx+dy*dy;
+    let t = L2 ? ((p[0]-a[0])*dx + (p[1]-a[1])*dy) / L2 : 0; t = Math.max(0, Math.min(1, t));
+    const x = a[0]+t*dx, y = a[1]+t*dy, off = Math.hypot(p[0]-x, p[1]-y);
+    if (off < best.off) best = { off, along: CUM[i] + t*Math.sqrt(L2), xy:[x,y], seg:i };
+  }
+  best.ll = toLL(best.xy);
+  return best;
+}
+function pointAt(along){
+  along = Math.max(0, Math.min(TOTAL, along));
+  let i = 0; while (i < CUM.length-2 && CUM[i+1] < along) i++;
+  const segLen = CUM[i+1]-CUM[i] || 1, t = (along-CUM[i]) / segLen;
+  return toLL([RXY[i][0] + t*(RXY[i+1][0]-RXY[i][0]), RXY[i][1] + t*(RXY[i+1][1]-RXY[i][1])]);
+}
+function routeUpTo(along){
+  const out = []; for (let i=0;i<ROUTE.length && CUM[i] <= along;i++) out.push(ROUTE[i]);
+  out.push(pointAt(along)); return out;
+}
+// stops are in walking order, so each one is snapped only to the route after the previous stop
+let prevSeg = 0;
+STOPS.forEach((s,i) => {
+  const sn = snapToRoute([s.lat,s.lng], prevSeg);
+  s.along = i === STOPS.length-1 ? TOTAL : sn.along; prevSeg = sn.seg;
+  s.radius = s.radius || CONFIG.arriveRadius;
+});
+
+const fmtDist = m => m < 1000 ? `${Math.round(m)} ${T().m}` : `${(m/1000).toFixed(2)} ${T().km}`;
+const fmtEta  = m => `${Math.max(1, Math.round(m / (CONFIG.walkSpeedKmh*1000/60)))} ${T().min}`;
+const fmtTime = ms => { const s = Math.floor(ms/1000), h = Math.floor(s/3600), m = Math.floor(s%3600/60), x = s%60;
+  return (h ? h + ":" + String(m).padStart(2,"0") : m) + ":" + String(x).padStart(2,"0"); };
+
+/* ================= map ================= */
+const map = L.map("map", { zoomControl:false }).fitBounds(L.latLngBounds(ROUTE).pad(0.2));
+L.control.zoom({ position:"topleft" }).addTo(map);
+const layers = {
+  map: L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom:19, attribution:"© OpenStreetMap" }),
+  sat: L.tileLayer("https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}", { maxZoom:19, attribution:"Imagery © Esri" })
+};
+let layer = "map"; layers.map.addTo(map);
+
+L.polyline(ROUTE, { color:"#1565c0", weight:6, opacity:.35 }).addTo(map);
+const walkedLine = L.polyline([], { color:"#2e7d32", weight:6 }).addTo(map);
+const offLine = L.polyline([], { color:"#c62828", weight:2, dashArray:"4 6" }).addTo(map);
+
+const markers = STOPS.map((s,i) => {
+  const m = L.marker([s.lat,s.lng], { icon: pinIcon(i, "") }).addTo(map);
+  m.bindPopup(() => {
+    const d = document.createElement("div");
+    d.innerHTML = `<b>${i+1}. ${esc(pick(s.title))}</b><br><small>${esc(pick(s.kicker))}</small><br>`;
+    const b = document.createElement("button"); b.textContent = T().detail; b.onclick = () => openStop(i);
+    d.appendChild(b); return d;
+  });
+  return m;
+});
+function pinIcon(i, cls){ return L.divIcon({ className:"", html:`<div class="pin ${cls}">${i+1}</div>`, iconSize:[28,28], iconAnchor:[14,14], popupAnchor:[0,-14] }); }
+
+const meIcon = L.divIcon({ className:"", html:'<div class="me" id="me"><div class="arrow"></div><div class="dot"></div></div>', iconSize:[22,22], iconAnchor:[11,11] });
+let meMarker = null, accCircle = null;
+function ensureMe(ll){
+  if (meMarker) return;
+  accCircle = L.circle(ll, { radius:10, color:"#1e88e5", weight:1, fillOpacity:.1, interactive:false }).addTo(map);
+  meMarker = L.marker(ll, { icon:meIcon, draggable:true, zIndexOffset:1000 }).addTo(map);
+  // drag the blue dot to test without GPS
+  meMarker.on("dragstart", () => { if (S.source === "sim") stopSim(); });
+  meMarker.on("dragend", () => { const p = meMarker.getLatLng(); S.source = "drag"; onPosition(p.lat, p.lng, 5); });
+}
+
+/* ================= position handling ================= */
+function onPosition(lat, lng, acc){
+  const ll = [lat, lng];
+  S.pos = { lat, lng, acc };
+  ensureMe(ll);
+  meMarker.setLatLng(ll); accCircle.setLatLng(ll).setRadius(Math.max(acc, 3));
+
+  // the route passes close to itself near the end, so prefer the part of the route near where we were
+  let sn = null;
+  if (S.snap && S.snap.off <= CONFIG.offRouteMeters){
+    let lo = S.snap.seg, hi = S.snap.seg;
+    while (lo > 0 && CUM[lo] > S.snap.along - 60) lo--;
+    while (hi < RXY.length-2 && CUM[hi+1] < S.snap.along + 150) hi++;
+    const local = snapToRoute(ll, lo, hi);
+    if (local.off <= CONFIG.offRouteMeters) sn = local;
+  }
+  S.snap = sn || snapToRoute(ll);
+
+  if (S.mode === "running"){
+    if (acc <= CONFIG.maxAccuracy){
+      if (S.lastCounted){
+        const d = dist(S.lastCounted, ll);
+        if (d >= 3 && d < 200) { S.walked += d; S.lastCounted = ll; }
+      } else S.lastCounted = ll;
+    }
+    checkArrivals(ll);
+  }
+  if (S.follow) map.panTo(ll, { animate:true });
+  render();
+}
+
+function checkArrivals(ll){
+  STOPS.forEach((s,i) => {
+    if (S.visited.has(s.id)) return;
+    // arrived = close to the stop, or walked past its point on the route (some buildings sit back from the road)
+    const passed = S.snap && S.snap.off <= CONFIG.offRouteMeters && S.snap.along >= s.along - 10;
+    if (dist(ll, [s.lat,s.lng]) <= s.radius || passed){
+      S.visited.add(s.id); store.set("visited", [...S.visited]);
+      const last = i === STOPS.length-1;
+      toast(last ? T().allDone : T().arrived(pick(s.title)));
+      if (navigator.vibrate) navigator.vibrate(last ? [200,100,200,100,300] : [200,100,200]);
+      openStop(i);
+    }
+  });
+}
+
+/* ================= GPS ================= */
+let watchId = null;
+function startGps(){
+  if (!navigator.geolocation){ toast(T().noGps, true); return false; }
+  if (!window.isSecureContext && !/^(localhost|127\.)/.test(location.hostname) && location.protocol !== "file:") toast(T().needHttps, true);
+  S.source = "gps";
+  watchId = navigator.geolocation.watchPosition(
+    p => { if (S.source === "gps") onPosition(p.coords.latitude, p.coords.longitude, Math.round(p.coords.accuracy)); },
+    err => { toast(err.code === 1 ? T().gpsDenied : T().gpsDenied + (window.isSecureContext ? "" : " · " + T().needHttps), true); },
+    { enableHighAccuracy:true, maximumAge:2000, timeout:20000 }
+  );
+  return true;
+}
+function stopGps(){ if (watchId != null) navigator.geolocation.clearWatch(watchId); watchId = null; }
+
+/* ================= simulation ================= */
+let simTimer = null, simAlong = 0;
+function startSim(){
+  stopGps(); S.source = "sim";
+  simAlong = S.snap && S.snap.off < 30 ? S.snap.along : 0;
+  if (S.mode === "idle" || S.mode === "finished") beginRun();
+  else if (S.mode === "paused") resumeRun();
+  const step = 1.4 * CONFIG.simSpeedup;  // metres per tick (1 tick = 1 s)
+  simTimer = setInterval(() => {
+    simAlong = Math.min(TOTAL, simAlong + step);
+    const ll = pointAt(simAlong);
+    onPosition(ll[0], ll[1], 5);
+    if (simAlong >= TOTAL) stopSim();
+  }, 1000);
+  const ll = pointAt(simAlong); onPosition(ll[0], ll[1], 5);
+  render();
+}
+function stopSim(){ clearInterval(simTimer); simTimer = null; if (S.source === "sim") S.source = null; render(); }
+
+/* ================= compass ================= */
+let compassOn = false;
+function onOrient(e){
+  let h = null;
+  if (typeof e.webkitCompassHeading === "number") h = e.webkitCompassHeading;          // iOS
+  else if (e.absolute && typeof e.alpha === "number") h = 360 - e.alpha;               // Android (absolute)
+  if (h == null) return;
+  S.heading = h; drawHeading();
+}
+function drawHeading(){
+  const el = document.getElementById("me"); if (!el) return;
+  el.classList.toggle("has-heading", compassOn && S.heading != null);
+  const a = el.querySelector(".arrow"); if (a && S.heading != null) a.style.transform = `rotate(${S.heading}deg)`;
+}
+async function toggleCompass(){
+  if (compassOn){
+    compassOn = false;
+    removeEventListener("deviceorientationabsolute", onOrient); removeEventListener("deviceorientation", onOrient);
+    drawHeading(); render(); return;
+  }
+  if (!("DeviceOrientationEvent" in window)){ toast(T().compassNo, true); return; }
+  try {
+    if (typeof DeviceOrientationEvent.requestPermission === "function"){
+      if (await DeviceOrientationEvent.requestPermission() !== "granted"){ toast(T().compassNo, true); return; }
+    }
+  } catch(_){ toast(T().compassNo, true); return; }
+  compassOn = true;
+  if ("ondeviceorientationabsolute" in window) addEventListener("deviceorientationabsolute", onOrient);
+  else addEventListener("deviceorientation", onOrient);
+  setTimeout(() => { if (compassOn && S.heading == null) toast(T().compassNo, true); }, 3000);
+  render();
+}
+
+/* ================= run control ================= */
+let tick = null;
+function beginRun(){
+  S.mode = "running"; S.walked = 0; S.elapsed = 0; S.runSince = Date.now(); S.lastCounted = null;
+  S.visited = new Set(); store.set("visited", []);
+  clearInterval(tick); tick = setInterval(render, 1000);
+}
+function pauseRun(){ S.elapsed += Date.now() - S.runSince; S.mode = "paused"; if (S.source === "sim") stopSim(); }
+function resumeRun(){ S.runSince = Date.now(); S.mode = "running"; S.lastCounted = null; }
+function elapsed(){ return S.elapsed + (S.mode === "running" ? Date.now() - S.runSince : 0); }
+function finishRun(){
+  if (S.mode === "running") S.elapsed += Date.now() - S.runSince;
+  S.mode = "finished"; stopSim(); stopGps(); clearInterval(tick); render(); showSummary();
+}
+
+$("#bStart").onclick = () => {
+  if (S.mode === "running"){ pauseRun(); render(); return; }
+  if (S.mode === "paused"){ resumeRun(); if (S.source !== "sim" && watchId == null) startGps(); render(); return; }
+  stopSim();
+  if (!startGps()) return;
+  beginRun(); S.follow = true; render();
+};
+$("#bEnd").onclick = () => {
+  if (S.mode !== "running" && S.mode !== "paused") return;
+  confirmSheet(T().confirmEnd, finishRun);
+};
+$("#bList").onclick = showList;
+$("#bSim").onclick = () => simTimer ? (stopSim(), S.mode === "running" && pauseRun(), render()) : startSim();
+$("#bFollow").onclick = () => { S.follow = !S.follow; if (S.follow && S.pos) map.panTo([S.pos.lat, S.pos.lng]); render(); };
+$("#bCompass").onclick = toggleCompass;
+$("#bLayer").onclick = () => { map.removeLayer(layers[layer]); layer = layer === "map" ? "sat" : "map"; layers[layer].addTo(map); render(); };
+$("#bWhole").onclick = () => { S.follow = false; map.fitBounds(L.latLngBounds(ROUTE).pad(0.15)); render(); };
+map.on("dragstart", () => { if (S.follow){ S.follow = false; render(); } });
+
+/* ================= sheets ================= */
+const sheet = $("#sheet"), box = $("#sheetBox");
+sheet.addEventListener("click", e => { if (e.target === sheet) closeSheet(); });
+function openSheet(html){ box.innerHTML = html; sheet.classList.add("open"); box.scrollTop = 0; }
+function closeSheet(){ sheet.classList.remove("open"); }
+
+function openStop(i){
+  const s = STOPS[i], t = T();
+  openSheet(`
+    <div class="kick">${esc(t.stopN(i+1))} · ${esc(pick(s.kicker))} · ${esc(t.fromStart(fmtDist(s.along)))}${S.visited.has(s.id) ? " · " + esc(t.done) : ""}</div>
+    <h2>${esc(pick(s.title))}</h2>
+    <div class="photo" id="ph"></div>
+    <div>${esc(pick(s.text))}</div>
+    <div class="chips">${(pick(s.facts)||[]).map(f => `<span>${esc(f)}</span>`).join("")}</div>
+    <div class="row"><button type="button" id="xGo">${esc(t.goHere)}</button><button type="button" class="primary" id="xClose">${esc(t.close)}</button></div>`);
+  const ph = $("#ph"), img = new Image();
+  img.alt = pick(s.title);
+  img.onload = () => { ph.innerHTML = ""; ph.appendChild(img); };
+  img.onerror = () => { ph.textContent = `${t.noPhoto} ${s.img}`; };
+  img.src = s.img;
+  $("#xClose").onclick = closeSheet;
+  $("#xGo").onclick = () => { closeSheet(); S.follow = false; map.setView([s.lat,s.lng], 18); markers[i].openPopup(); render(); };
+}
+
+function showList(){
+  const t = T(), cur = nextStopIndex();
+  openSheet(`<h2>${esc(t.stops.replace("☰ ",""))}</h2><ul class="list">${STOPS.map((s,i) => `
+    <li data-i="${i}" class="${S.visited.has(s.id) ? "v" : ""} ${i===cur ? "cur" : ""}">
+      <span class="n">${i+1}</span>
+      <span class="t">${esc(pick(s.title))}<small>${esc(pick(s.kicker))} · ${esc(fmtDist(s.along))}${S.visited.has(s.id) ? " · " + esc(t.done) : ""}</small></span>
+      <span>›</span>
+    </li>`).join("")}</ul>
+    <div class="row"><button type="button" class="primary" id="xClose">${esc(t.close)}</button></div>`);
+  box.querySelectorAll("li").forEach(li => li.onclick = () => openStop(+li.dataset.i));
+  $("#xClose").onclick = closeSheet;
+}
+
+function confirmSheet(msg, yes){
+  const t = T();
+  openSheet(`<h2>${esc(msg)}</h2><div class="row"><button type="button" id="xNo">${esc(t.cont)}</button><button type="button" class="primary" id="xYes">${esc(t.finish)}</button></div>`);
+  $("#xNo").onclick = closeSheet; $("#xYes").onclick = () => { closeSheet(); yes(); };
+}
+
+function showSummary(){
+  const t = T();
+  openSheet(`<h2>${esc(t.summary)}</h2>
+    <div class="sum">
+      <div><b>${esc(fmtDist(S.walked))}</b>${esc(t.dist)}</div>
+      <div><b>${fmtTime(S.elapsed)}</b>${esc(t.time)}</div>
+      <div><b>${Math.round(S.walked/1000*CONFIG.kcalPerKm)}</b>${esc(t.kcal)}</div>
+      <div><b>${S.visited.size}/${STOPS.length}</b>${esc(t.visited)}</div>
+    </div>
+    <div class="row"><button type="button" id="xClose">${esc(t.close)}</button><button type="button" class="primary" id="xAgain">${esc(t.again)}</button></div>`);
+  $("#xClose").onclick = closeSheet;
+  $("#xAgain").onclick = () => { closeSheet(); S.mode = "idle"; S.walked = 0; S.elapsed = 0; S.visited = new Set(); store.set("visited", []); render(); };
+}
+
+/* ================= toast ================= */
+let toastT;
+function toast(msg, err){
+  const el = $("#toast"); el.textContent = msg; el.classList.toggle("err", !!err); el.classList.add("show");
+  clearTimeout(toastT); toastT = setTimeout(() => el.classList.remove("show"), err ? 6000 : 4000);
+}
+
+/* ================= render ================= */
+function nextStopIndex(){
+  for (let i=0;i<STOPS.length;i++) if (!S.visited.has(STOPS[i].id)) return i;
+  return -1;
+}
+function render(){
+  const t = T();
+  document.documentElement.lang = lang === "zh" ? "zh-Hans" : lang;
+  document.title = pick(SITE.title);
+  $("#title").textContent = pick(SITE.title);
+
+  // side buttons
+  $("#bFollow").textContent = t.follow;  $("#bFollow").classList.toggle("on", S.follow);
+  $("#bCompass").textContent = t.compass; $("#bCompass").classList.toggle("on", compassOn);
+  $("#bLayer").textContent = layer === "map" ? t.sat : t.map;
+  $("#bWhole").textContent = t.whole;
+  $("#bSim").textContent = simTimer ? t.simOn : t.sim; $("#bSim").classList.toggle("on", !!simTimer);
+
+  // actions
+  $("#bStart").textContent = S.mode === "running" ? t.pause : S.mode === "paused" ? t.resume : t.start;
+  $("#bEnd").textContent = t.finish; $("#bEnd").disabled = !(S.mode === "running" || S.mode === "paused");
+  $("#bList").textContent = t.stops;
+
+  // stats
+  $("#lDist").textContent = t.dist; $("#lTime").textContent = t.time; $("#lKcal").textContent = t.kcal; $("#lVis").textContent = t.visited;
+  $("#sDist").textContent = fmtDist(S.walked);
+  $("#sTime").textContent = fmtTime(elapsed());
+  $("#sKcal").textContent = Math.round(S.walked/1000*CONFIG.kcalPerKm);
+  $("#sVis").textContent = `${S.visited.size}/${STOPS.length}`;
+
+  // markers
+  const cur = nextStopIndex();
+  markers.forEach((m,i) => {
+    const cls = S.visited.has(STOPS[i].id) ? "v" : i === cur ? "cur" : "";
+    if (m._cls !== cls){ m._cls = cls; m.setIcon(pinIcon(i, cls)); }
+  });
+
+  // status line
+  const st = $("#status"), sub = $("#sub");
+  sub.classList.remove("warn");
+  if (!S.pos){
+    st.textContent = (S.mode === "running" && S.source === "gps") ? t.locating : t.idle;
+    sub.textContent = "";
+    $("#prog").style.width = "0%";
+  } else {
+    const sn = S.snap, onRoute = sn.off <= CONFIG.offRouteMeters;
+    const progress = cur === -1 ? TOTAL : (onRoute ? sn.along : 0);
+    $("#prog").style.width = (progress / TOTAL * 100).toFixed(1) + "%";
+    walkedLine.setLatLngs(progress > 0 ? routeUpTo(progress) : []);
+    offLine.setLatLngs(onRoute ? [] : [[S.pos.lat,S.pos.lng], sn.ll]);
+
+    if (cur === -1){ st.textContent = t.allDone; sub.textContent = ""; }
+    else {
+      const s = STOPS[cur];
+      // along-route distance when on the route, straight line otherwise
+      const d = onRoute && s.along >= sn.along ? s.along - sn.along : dist([S.pos.lat,S.pos.lng],[s.lat,s.lng]);
+      st.textContent = cur === 0 && !onRoute ? t.toStart(fmtDist(d)) : t.next(cur+1, pick(s.title));
+      sub.textContent = t.nextDist(fmtDist(d), fmtEta(d)) + " · " + t.accuracy(S.pos.acc);
+      if (!onRoute){ sub.textContent = t.offRoute(fmtDist(sn.off)) + " · " + sub.textContent; sub.classList.add("warn"); }
+    }
+  }
+  drawHeading();
+}
+
+/* ================= language ================= */
+const sel = $("#lang");
+LANGS.forEach(([c,l]) => { const o = document.createElement("option"); o.value = c; o.textContent = l; sel.appendChild(o); });
+sel.value = lang;
+sel.onchange = () => {
+  lang = sel.value; store.set("lang", lang);
+  try { const u = new URL(location.href); u.searchParams.set("lang", lang); history.replaceState(null, "", u); } catch(_){}
+  if (sheet.classList.contains("open")) closeSheet();
+  render();
+};
+
+render();
+})();
+</script>
+</body>
+</html>
