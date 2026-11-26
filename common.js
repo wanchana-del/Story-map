@@ -130,6 +130,7 @@ const ICON = {
   layers: '<path d="M12 4l9 5-9 5-9-5z"/><path d="M3 14l9 5 9-5"/>',
   route:  '<circle cx="6" cy="18" r="2.5"/><circle cx="18" cy="6" r="2.5"/><path d="M8.5 18H15a3 3 0 0 0 0-6H9a3 3 0 0 1 0-6h6.5" stroke-dasharray="2 3"/>',
   sim:    '<path d="M7 5l12 7-12 7z" fill="currentColor" stroke="none"/>',
+  share:  '<circle cx="18" cy="5.5" r="2.5"/><circle cx="6" cy="12" r="2.5"/><circle cx="18" cy="18.5" r="2.5"/><path d="M8.2 10.8l7.6-4.1M8.2 13.2l7.6 4.1"/>',
   photo:  '<rect x="3" y="5" width="18" height="14" rx="3"/><circle cx="9" cy="10" r="1.8"/><path d="M4 17l5-4 4 3 3-2 4 3"/>'
 };
 const icon = (name, size = 22, cls = "") =>
@@ -142,3 +143,44 @@ function photoHTML(stop, cls = ""){
     ${icon("photo", 26, "photo-ph")}
   </div>`;
 }
+
+/* ---------- v3 scrapbook art ---------- */
+// hand-drawn wobble filters, shared by every page (added once)
+(function addFilters(){
+  const svg = '<svg width="0" height="0" style="position:absolute" aria-hidden="true">' +
+    '<filter id="bk-rough"><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="4"/><feDisplacementMap in="SourceGraphic" scale="2.6"/></filter>' +
+    '<filter id="bk-wash"><feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="3" seed="9"/><feDisplacementMap in="SourceGraphic" scale="14"/></filter></svg>';
+  const put = () => document.body.insertAdjacentHTML("afterbegin", svg);
+  document.body ? put() : document.addEventListener("DOMContentLoaded", put);
+})();
+
+// line drawing of the Grey Residence (cover / ready screen)
+const coverArt = () => `
+  <svg viewBox="0 0 280 170" class="tw-block tw-w-full tw-h-auto" role="img" aria-label="${esc(pick(STOPS[0].title))}">
+    <ellipse cx="150" cy="104" rx="118" ry="50" fill="#F9DDE7" opacity=".85" filter="url(#bk-wash)"/>
+    <ellipse cx="52" cy="92" rx="38" ry="40" fill="#DCE6D2" filter="url(#bk-wash)"/>
+    <ellipse cx="246" cy="100" rx="30" ry="34" fill="#DCE6D2" filter="url(#bk-wash)"/>
+    <g fill="none" stroke="#1E3F2F" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" filter="url(#bk-rough)">
+      <path d="M8 142 Q140 137 272 143"/><path d="M72 141 V98 H208 V141"/><path d="M58 99 H222 L198 84 H82 Z"/>
+      <path d="M92 84 V68 H188 V84"/><path d="M80 69 L140 36 L200 69 Z"/><path d="M140 36 V28"/><path d="M122 54 Q140 46 158 54"/>
+      ${[86,110,162,186].map(x => `<rect x="${x}" y="108" width="13" height="22" rx="1"/><path d="M${x+6.5} 108 V130"/>`).join("")}
+      <path d="M128 141 V114 Q140 104 152 114 V141"/>
+      ${[104,133,162].map(x => `<rect x="${x}" y="72" width="12" height="9"/>`).join("")}
+      <path d="M120 141 H160 M116 145 H164"/>
+      <path d="M50 142 V108"/><path d="M50 116 L40 106 M50 122 L60 112"/>
+      <circle cx="50" cy="92" r="18"/><circle cx="36" cy="102" r="12"/><circle cx="64" cy="102" r="12"/>
+      <path d="M246 142 V114"/><circle cx="246" cy="100" r="15"/><circle cx="235" cy="110" r="9"/><circle cx="257" cy="110" r="9"/>
+    </g>
+    <g stroke="#C24F7C" stroke-width="1.4" fill="none" stroke-linecap="round" filter="url(#bk-rough)">
+      <path d="M18 150 q4-6 8 0 q4-6 8 0"/><path d="M222 152 q4-6 8 0 q4-6 8 0"/>
+    </g>
+  </svg>`;
+
+// small line icon for each stop's stamp (by stop id; anything else gets a pin)
+const STAMP_ART = {
+  palace:      '<path d="M4 34h32M8 34V22h24v12M5 22l15-11 15 11M16 34v-7h8v7M20 11V7"/>',
+  colorhouses: '<path d="M3 34h34M5 34v-9l5-5 5 5v9M15 34V22l5-5 5 5v12M25 34v-9l5-5 5 5v9"/>',
+  monument:    '<path d="M11 35h18M13 35v-6h14v6M16 29v-5h8v5M20 24v-6"/><circle cx="20" cy="12" r="4"/><path d="M15 21q5-4 10 0"/>',
+  penghouse:   '<path d="M4 34h32M8 34V20l12-10 12 10v14M16 34v-8h8v8M14 22h4v3h-4zM22 22h4v3h-4z"/>'
+};
+const stampArt = (s, size = 40) => `<svg width="${size}" height="${size}" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${STAMP_ART[s.id] || '<path d="M20 34s-10-8.5-10-16a10 10 0 0 1 20 0c0 7.5-10 16-10 16z"/><circle cx="20" cy="18" r="3.5"/>'}</svg>`;

@@ -1,0 +1,521 @@
+<!doctype html>
+<html lang="th">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>ดีไซน์ v3 · สมุดภาพ</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Anuphan:wght@400;500;600;700&family=Charm:wght@400;700&family=Trirong:wght@600;700&display=swap" rel="stylesheet">
+<style>
+@font-face { font-family: "FC Mee Sakul Serif"; src: url("fonts/FCMeeSakulSerif-Bold.otf") format("opentype"); font-weight: 700; font-display: swap; }
+:root{
+  --desk:#E6DCC8; --paper:#F6F0E3; --paper-deep:#ECE2CF; --card:#FFFCF5; --line:#E1D6C1;
+  --ink:#26302A; --ink-soft:#5E665F; --slate:#8A9590;
+  --forest:#2F5D46; --forest-dark:#1E3F2F; --moss:#8AA37B; --moss-soft:#DCE6D2;
+  --pink:#C24F7C; --pink-soft:#F9DDE7; --blossom:#E58FB0; --blossom-soft:#FCEAF0;
+  --tape:rgba(229,143,176,.55); --tape-green:rgba(138,163,123,.5); --me:#3B82C4;
+  --f-head:"FC Mee Sakul Serif","Trirong",Georgia,serif;
+  --f-body:"Anuphan","Noto Sans Thai",system-ui,sans-serif;
+  --f-hand:"Charm","Anuphan",cursive;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--desk);color:var(--ink);font:400 15px/1.65 var(--f-body)}
+.grain{position:relative;isolation:isolate}
+.grain::after{content:"";position:absolute;inset:0;pointer-events:none;z-index:50;opacity:.45;mix-blend-mode:multiply;border-radius:inherit;
+  background-image:url("data:image/svg+xml;utf8,<svg xmlns='http://www.w3.org/2000/svg' width='140' height='140'><filter id='n'><feTurbulence type='fractalNoise' baseFrequency='.85' numOctaves='2' stitchTiles='stitch'/><feColorMatrix values='0 0 0 0 .4  0 0 0 0 .34  0 0 0 0 .28  0 0 0 .2 0'/></filter><rect width='140' height='140' filter='url(%23n)'/></svg>")}
+
+/* ---------- board ---------- */
+.board{max-width:1500px;margin:0 auto;padding:40px 24px 80px}
+.board h1{font:700 2.4rem/1.3 var(--f-head);color:var(--forest-dark);margin:0}
+.board .lead{font:400 1.35rem/1.5 var(--f-hand);color:var(--pink);margin:.2rem 0 1.4rem}
+.why{display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:14px;margin-bottom:34px}
+.why div{background:var(--card);border:1px solid var(--line);border-radius:16px;padding:14px 16px}
+.why b{display:block;font-weight:600;color:var(--forest-dark);margin-bottom:2px}
+.why span{color:var(--ink-soft);font-size:.92rem}
+.sec-title{font:700 1.4rem/1.4 var(--f-head);color:var(--forest-dark);margin:0 0 14px}
+
+.flow{display:flex;flex-wrap:wrap;gap:36px 0;padding:10px 4px 24px}
+@media (max-width:820px){.flow{flex-wrap:nowrap;overflow-x:auto;scroll-snap-type:x mandatory}}
+.step{flex:none;width:380px;scroll-snap-align:start;display:flex;flex-direction:column;align-items:center}
+.step-head{align-self:flex-start;margin:0 0 10px 10px;display:flex;align-items:center;gap:10px}
+.step-head .letter{width:34px;height:34px;border-radius:50%;background:var(--forest);color:#fff;display:grid;place-items:center;font-weight:700}
+.step-head .nm{font-weight:600;font-size:1.02rem}
+.step-head .nm small{display:block;font-weight:400;color:var(--ink-soft);font-size:.82rem;line-height:1.3}
+.arrow{flex:none;width:36px;align-self:center;margin-top:-60px;color:var(--pink);font:700 1.6rem var(--f-hand);text-align:center}
+.notes{width:360px;margin-top:14px;background:var(--card);border:1px dashed var(--moss);border-radius:14px;padding:10px 14px;font-size:.86rem;color:var(--ink-soft)}
+.notes p{margin:0 0 4px}
+.notes b{color:var(--ink)}
+.notes .go{color:var(--pink);font-weight:600}
+
+/* ---------- phone ---------- */
+.phone{width:360px;height:760px;border-radius:46px;background:#1E211F;padding:10px;box-shadow:0 30px 60px -20px rgba(40,30,20,.45),0 2px 0 #3a3d3b inset}
+.screen{width:340px;height:740px;border-radius:37px;overflow:hidden;position:relative;background:var(--paper)}
+.status{position:absolute;top:0;left:0;right:0;height:40px;z-index:40;display:flex;justify-content:space-between;align-items:center;padding:4px 26px 0;font:600 13px var(--f-body);color:var(--ink)}
+.status i{width:96px;height:26px;border-radius:20px;background:#1E211F;position:absolute;left:50%;top:9px;transform:translateX(-50%)}
+.map{position:absolute;inset:0;z-index:1}
+
+/* ---------- scrapbook parts ---------- */
+.tape{position:absolute;height:24px;width:92px;background:var(--tape);z-index:30;
+  clip-path:polygon(0 8%,4% 0,8% 10%,12% 0,88% 0,92% 10%,96% 0,100% 8%,100% 92%,96% 100%,92% 90%,88% 100%,12% 100%,8% 90%,4% 100%,0 92%)}
+.tape.g{background:var(--tape-green)}
+.polaroid{background:var(--card);padding:8px 8px 30px;box-shadow:0 6px 16px rgba(40,30,20,.16),0 1px 2px rgba(40,30,20,.12);position:relative}
+.polaroid .cap{position:absolute;left:0;right:0;bottom:3px;text-align:center;font:400 1.02rem var(--f-hand);color:var(--ink-soft)}
+.ph{background:repeating-linear-gradient(-45deg,var(--paper-deep) 0 8px,#E6DBC5 8px 16px);display:grid;place-items:center;color:var(--slate);font-size:.75rem}
+.hand{font-family:var(--f-hand)}
+.h-title{font:700 2.45rem/1.25 var(--f-head);color:var(--forest-dark);margin:0}
+.h2{font:700 1.45rem/1.4 var(--f-head);color:var(--forest-dark);margin:0}
+.kicker{font:600 .78rem/1.4 var(--f-body);letter-spacing:.05em;color:var(--pink)}
+.lang{display:inline-flex;gap:2px;padding:3px;border-radius:999px;background:var(--paper-deep);font-size:.78rem}
+.lang span{padding:2px 9px;border-radius:999px;color:var(--ink-soft)}
+.lang span.on{background:var(--card);color:var(--ink);box-shadow:0 1px 2px rgba(0,0,0,.08)}
+
+.btn{display:flex;align-items:center;justify-content:center;gap:8px;width:100%;border:0;border-radius:16px;padding:14px 16px;font:600 1.05rem/1.3 var(--f-body);cursor:pointer}
+.btn-main{background:var(--forest);color:#fff;box-shadow:0 4px 0 var(--forest-dark)}
+.btn-pink{background:var(--pink);color:#fff;box-shadow:0 4px 0 #9A3B61}
+.btn-sub{background:var(--card);color:var(--forest-dark);border:1.5px solid var(--line);box-shadow:0 3px 0 var(--line)}
+.btn-text{background:none;color:var(--forest);font-weight:500;font-size:.95rem;padding:8px;text-decoration:underline;text-decoration-style:wavy;text-decoration-color:var(--blossom);text-underline-offset:5px}
+
+.sheet{position:absolute;left:10px;right:10px;bottom:12px;z-index:20;background:var(--card);border-radius:24px;padding:20px 18px 16px;box-shadow:0 -4px 24px rgba(40,30,20,.16),0 2px 4px rgba(40,30,20,.08)}
+.note{position:relative;background:#FFF8E6;padding:10px 14px 10px 16px;border-radius:4px;box-shadow:0 3px 8px rgba(40,30,20,.12);
+  background-image:repeating-linear-gradient(transparent 0 25px,rgba(194,79,124,.16) 25px 26px);font:400 1.06rem/26px var(--f-hand);color:var(--ink)}
+.chip{display:inline-flex;align-items:center;gap:5px;padding:3px 11px;border-radius:999px;background:var(--moss-soft);color:var(--forest-dark);font-size:.82rem}
+.chip.p{background:var(--pink-soft);color:var(--pink)}
+.mapbtn{display:flex;align-items:center;gap:6px;background:var(--card);border:1.5px solid var(--line);border-radius:999px;padding:7px 13px 7px 10px;font:600 .82rem var(--f-body);color:var(--forest-dark);box-shadow:0 3px 10px rgba(40,30,20,.14)}
+.mapbtn.on{background:var(--forest);color:#fff;border-color:var(--forest)}
+.pbar{height:10px;border-radius:99px;background:var(--paper-deep);overflow:hidden}
+.pbar i{display:block;height:100%;border-radius:99px;background:repeating-linear-gradient(-45deg,var(--pink) 0 6px,var(--blossom) 6px 12px)}
+
+/* stamps (ตราประทับ) */
+.stamp{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;flex:none;position:relative;font:700 1rem var(--f-body)}
+.stamp.todo{border:2px dashed var(--slate);color:var(--slate);background:transparent}
+.stamp.next{background:var(--blossom);color:var(--ink);box-shadow:0 0 0 3px var(--card),0 0 0 5px var(--blossom)}
+.stamp.done{background:var(--forest);color:#fff;box-shadow:0 0 0 3px var(--card),0 0 0 5px var(--forest)}
+.stamp-row{display:flex;align-items:center;gap:0}
+.stamp-row .dash{flex:1;height:2px;min-width:14px;background:repeating-linear-gradient(90deg,var(--moss) 0 5px,transparent 5px 10px)}
+.big-stamp{width:120px;height:120px;border-radius:50%;border:3px solid currentColor;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px;position:relative;text-align:center}
+.big-stamp::before{content:"";position:absolute;inset:6px;border-radius:50%;border:1.5px dashed currentColor;opacity:.7}
+.big-stamp small{font:600 .62rem/1.25 var(--f-body);max-width:84px}
+
+.kit{display:grid;grid-template-columns:repeat(auto-fit,minmax(300px,1fr));gap:18px;margin-top:40px}
+.kit .card{background:var(--card);border:1px solid var(--line);border-radius:18px;padding:18px}
+.kit h3{margin:0 0 12px;font:600 1rem var(--f-body)}
+.sw{display:flex;flex-wrap:wrap;gap:10px}
+.sw div{width:76px;font-size:.72rem;color:var(--ink-soft);line-height:1.3}
+.sw div i{display:block;height:44px;border-radius:10px;margin-bottom:5px;border:1px solid rgba(0,0,0,.06)}
+@media (max-width:640px){.board{padding:24px 12px 60px}.board h1{font-size:1.8rem}}
+</style>
+</head>
+<body>
+<!-- ฟิลเตอร์ลายเส้นมือ ใช้ร่วมทุกภาพ -->
+<svg width="0" height="0" style="position:absolute" aria-hidden="true">
+  <filter id="rough"><feTurbulence type="fractalNoise" baseFrequency="0.035" numOctaves="2" seed="4"/><feDisplacementMap in="SourceGraphic" scale="2.6"/></filter>
+  <filter id="wash"><feTurbulence type="fractalNoise" baseFrequency="0.02" numOctaves="3" seed="9"/><feDisplacementMap in="SourceGraphic" scale="14"/></filter>
+</svg>
+
+<div class="board">
+  <h1>สวนบ้านแก้ว · ดีไซน์ v3 “สมุดภาพ”</h1>
+  <p class="lead">เดินเล่น ฟังเรื่องเล่า แล้วเก็บตราประทับให้ครบทั้ง 4 จุด</p>
+
+  <div class="why">
+    <div><b>ใช้แค่ 5 หน้า ตามลำดับ</b><span>หน้าแรก → เดินไปที่วัง → เดินชมในวัง ⇄ ถึงจุดแล้ว → สรุป แต่ละหน้ามีปุ่มหลักปุ่มเดียว ดูออกทันทีว่าต้องกดอะไรต่อ</span></div>
+    <div><b>แยกช่วงไปวังออกจากทัวร์</b><span>ประตู 1 เป็นแค่ทางเข้า ขั้น 1 ของการเดินคือนำทางไปที่วังอย่างเดียว พอถึงพระตำหนักเทาค่อยเริ่มนับจุดที่ 1</span></div>
+    <div><b>หน้าตาเหมือนสมุดภาพ</b><span>กระดาษสีครีม ลายเส้นวาดมือ เทปกาว รูปโพลารอยด์ โน้ตลายมือ และตราประทับสะสมแทนแถบความคืบหน้า</span></div>
+    <div><b>แผนที่ตอนเดินอ่านง่ายขึ้น</b><span>เส้นชมพูคือทางที่ต้องเดินตอนนี้ บอก “อีกกี่เมตร” ตัวใหญ่ ปุ่มบนแผนที่มีแค่ 2 ปุ่มและมีชื่อกำกับ</span></div>
+  </div>
+
+  <h2 class="sec-title">ลำดับการใช้งาน</h2>
+  <div class="flow" id="flow">
+
+    <!-- ===== A หน้าแรก ===== -->
+    <div class="step">
+      <div class="step-head"><span class="letter">A</span><span class="nm">หน้าแรก<small>ปกสมุด เปิดมาแล้วรู้เลยว่าที่นี่มีอะไร</small></span></div>
+      <div class="phone"><div class="screen grain">
+        <div class="status"><span>9:41</span><i></i><span>●●● ▮</span></div>
+        <div style="position:absolute;inset:44px 22px 20px;display:flex;flex-direction:column">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span class="chip" style="background:none;border:1.5px solid var(--moss);padding:2px 10px">มรภ.รำไพพรรณี · จันทบุรี</span>
+            <span class="lang"><span class="on">ไทย</span><span>EN</span><span>中文</span></span>
+          </div>
+          <div style="margin-top:26px;position:relative">
+            <div class="hand" style="font-size:1.15rem;color:var(--pink);transform:rotate(-3deg);transform-origin:left;margin-bottom:-4px">สมุดเดินชม</div>
+            <h1 class="h-title">เส้นทางสู่<br>สวนบ้านแก้ว</h1>
+            <svg width="190" height="14" viewBox="0 0 190 14" style="display:block;margin-top:-2px"><path d="M3 9 C 40 3, 70 13, 105 7 S 165 4, 187 8" fill="none" stroke="var(--blossom)" stroke-width="3.5" stroke-linecap="round" filter="url(#rough)"/></svg>
+          </div>
+          <div style="position:relative;margin:24px 4px 0;transform:rotate(-1.6deg)">
+            <span class="tape" style="top:-12px;left:50%;margin-left:-46px;transform:rotate(3deg)"></span>
+            <div class="polaroid">
+              <div id="art-cover" style="background:#FBF6EC;height:178px;display:grid;place-items:center"></div>
+              <div class="cap">พระตำหนักเทา · ที่ประทับเมื่อครั้งอยู่จันทบุรี</div>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;justify-content:center;margin-top:20px;flex-wrap:wrap">
+            <span class="chip">📍 4 จุดชม</span><span class="chip" id="cover-dist">🚶 ~1 กม.</span><span class="chip p">⏱ ~45 นาที</span>
+          </div>
+          <div style="margin-top:auto">
+            <button class="btn btn-main">เริ่มเดินชม <span aria-hidden="true">→</span></button>
+            <button class="btn btn-text" style="margin-top:6px">ก่อนมา: เวลาเปิด · ที่จอดรถ · การแต่งกาย</button>
+          </div>
+        </div>
+      </div></div>
+      <div class="notes">
+        <p><b>เริ่มเดินชม</b> <span class="go">→ B</span> กดครั้งเดียว ขอสิทธิ์ตำแหน่ง + เข็มทิศพร้อมกัน</p>
+        <p>เคยอนุญาตแล้ว → เข้าแผนที่เลย ไม่ถามซ้ำ</p>
+        <p><b>ก่อนมา…</b> → หน้าข้อมูลเยี่ยมชม (visit.html เดิม)</p>
+        <p>ถ้ามี GPS และอยู่ในวังแล้ว จะข้าม B ไป C ให้เอง</p>
+      </div>
+    </div>
+    <div class="arrow">→</div>
+
+    <!-- ===== B เดินไปที่วัง ===== -->
+    <div class="step">
+      <div class="step-head"><span class="letter">B</span><span class="nm">ขั้น 1 · เดินไปที่วัง<small>นำทางอย่างเดียว ยังไม่นับจุดชม</small></span></div>
+      <div class="phone"><div class="screen">
+        <div class="status"><span>9:41</span><i></i><span>●●● ▮</span></div>
+        <div class="map" id="map-b"></div>
+        <div style="position:absolute;top:46px;left:12px;right:12px;z-index:20;display:flex;justify-content:space-between;align-items:center">
+          <span class="chip" style="background:var(--card);box-shadow:0 2px 8px rgba(40,30,20,.14);padding:6px 12px;font-weight:600">ขั้น 1 จาก 2 · ไปที่วัง</span>
+          <span class="mapbtn" style="padding:7px 11px">✕ ออก</span>
+        </div>
+        <div style="position:absolute;right:12px;top:398px;z-index:20;display:flex;flex-direction:column;gap:8px;align-items:flex-end">
+          <span class="mapbtn">◎ ตำแหน่งฉัน</span>
+          <span class="mapbtn">🚻 ห้องน้ำ · ที่พัก</span>
+        </div>
+        <div class="sheet grain" style="padding-top:22px">
+          <span class="tape" style="top:-11px;left:24px;transform:rotate(-5deg)"></span>
+          <div class="kicker">ตามเส้นสีชมพู</div>
+          <div class="h2" style="font-size:1.35rem">เดินไปที่วังสวนบ้านแก้ว</div>
+          <div style="display:flex;align-items:baseline;gap:8px;margin:6px 0 8px">
+            <span id="b-left" style="font:700 2.1rem/1 var(--f-body);color:var(--pink)">—</span>
+            <span style="color:var(--ink-soft)">เมตร · <span id="b-min">—</span> นาที</span>
+          </div>
+          <div class="pbar"><i style="width:14%"></i></div>
+          <div class="note" style="margin:16px 4px 14px;transform:rotate(-1deg)">ระหว่างทางผ่านสนามกอล์ฟ ⛳ แวะตีได้นะ!</div>
+          <button class="btn btn-sub" style="font-size:.95rem;padding:11px">ถึงวังแล้ว · เริ่มทัวร์เลย</button>
+        </div>
+      </div></div>
+      <div class="notes">
+        <p>ถึงวัง (ใน 25 ม.) → เด้งไป <span class="go">C</span> เอง พร้อมสั่นเตือน</p>
+        <p><b>ถึงวังแล้ว · เริ่มทัวร์เลย</b> → C (ใช้ตอน GPS ไม่แม่น)</p>
+        <p><b>ห้องน้ำ · ที่พัก</b> เปิด/ปิดไอคอนบนแผนที่ · <b>✕ ออก</b> → A</p>
+      </div>
+    </div>
+    <div class="arrow">→</div>
+
+    <!-- ===== C เดินชมในวัง ===== -->
+    <div class="step">
+      <div class="step-head"><span class="letter">C</span><span class="nm">ขั้น 2 · เดินชมในวัง<small>บอกจุดถัดไป และระยะที่เหลือ</small></span></div>
+      <div class="phone"><div class="screen">
+        <div class="status"><span>9:58</span><i></i><span>●●● ▮</span></div>
+        <div class="map" id="map-c"></div>
+        <div style="position:absolute;top:46px;left:12px;right:12px;z-index:20;background:var(--card);border-radius:18px;padding:9px 14px;box-shadow:0 3px 12px rgba(40,30,20,.14)">
+          <div class="stamp-row">
+            <span class="stamp done" style="width:30px;height:30px;font-size:.8rem">✓</span><span class="dash"></span>
+            <span class="stamp next" style="width:30px;height:30px;font-size:.85rem">2</span><span class="dash"></span>
+            <span class="stamp todo" style="width:30px;height:30px;font-size:.85rem">3</span><span class="dash"></span>
+            <span class="stamp todo" style="width:30px;height:30px;font-size:.85rem">4</span>
+            <span style="margin-left:10px;font-size:.78rem;color:var(--ink-soft);white-space:nowrap">ตรา 1/4</span>
+          </div>
+        </div>
+        <div style="position:absolute;right:12px;top:372px;z-index:20;display:flex;flex-direction:column;gap:8px;align-items:flex-end">
+          <span class="mapbtn">◎ ตำแหน่งฉัน</span>
+          <span class="mapbtn on">🚻 ห้องน้ำ · ที่พัก</span>
+        </div>
+        <div class="sheet grain">
+          <span class="tape g" style="top:-11px;right:28px;transform:rotate(4deg)"></span>
+          <div style="display:flex;gap:14px;align-items:center">
+            <div class="polaroid" style="padding:5px 5px 16px;transform:rotate(-3deg);flex:none"><div class="ph" style="width:74px;height:74px">รูป</div></div>
+            <div style="min-width:0">
+              <div class="kicker">ต่อไป · จุดที่ 2</div>
+              <div class="h2" style="font-size:1.18rem;line-height:1.35" id="c-title">—</div>
+            </div>
+          </div>
+          <div style="display:flex;align-items:baseline;gap:8px;margin:10px 0 2px">
+            <span style="font:700 2.1rem/1 var(--f-body);color:var(--pink)">อีก <span id="c-left">—</span></span>
+            <span style="color:var(--ink-soft)">เมตร · เดินตามเส้นชมพู</span>
+          </div>
+          <div class="hand" style="color:var(--ink-soft);font-size:1.02rem;margin-bottom:12px">เกือบถึงแล้ว เรือนสามหลังอยู่ทางซ้ายมือ</div>
+          <div style="display:flex;gap:10px">
+            <button class="btn btn-sub" style="font-size:.92rem;padding:11px;flex:1">☰ ดูทั้ง 4 จุด</button>
+            <button class="btn btn-sub" style="font-size:.92rem;padding:11px;flex:1">ข้ามจุดนี้</button>
+          </div>
+        </div>
+      </div></div>
+      <div class="notes">
+        <p>เข้าใกล้จุดชม → เด้งไป <span class="go">D</span> เอง (สั่น + เสียง “ติ๊ง”)</p>
+        <p>แตะรูปหรือชื่อจุด → D ได้เลย ไม่ต้องรอ GPS</p>
+        <p><b>ดูทั้ง 4 จุด</b> → แผ่นรายการเลื่อนขึ้นมา เลือกเดินจุดไหนก่อนก็ได้</p>
+      </div>
+    </div>
+    <div class="arrow">⇄</div>
+
+    <!-- ===== D ถึงจุดแล้ว ===== -->
+    <div class="step">
+      <div class="step-head"><span class="letter">D</span><span class="nm">ถึงจุดแล้ว · หน้าเรื่องเล่า<small>เหมือนเปิดสมุดไปหน้าของจุดนี้</small></span></div>
+      <div class="phone"><div class="screen grain">
+        <div class="status"><span>10:01</span><i></i><span>●●● ▮</span></div>
+        <div style="position:absolute;inset:40px 0 0;overflow:hidden;padding:6px 20px 0">
+          <div style="display:flex;justify-content:space-between;align-items:center">
+            <span class="mapbtn" style="box-shadow:none">← แผนที่</span>
+            <span style="font-size:.8rem;color:var(--ink-soft)">จุดที่ 2 จาก 4</span>
+          </div>
+          <div style="position:relative;margin:20px 8px 0;transform:rotate(1.4deg)">
+            <span class="tape" style="top:-12px;left:18px;transform:rotate(-8deg)"></span>
+            <span class="tape g" style="top:-10px;right:14px;transform:rotate(7deg);width:70px"></span>
+            <div class="polaroid"><div class="ph" style="height:170px">รูปเรือนเขียว · เทา · แดง</div><div class="cap">สามเรือน สามสี เรียงกันในสวน</div></div>
+            <div class="big-stamp" style="position:absolute;right:-14px;bottom:-30px;width:92px;height:92px;color:var(--pink);background:rgba(255,252,245,.82);transform:rotate(-14deg)" >
+              <span style="font:700 1.25rem/1 var(--f-body)">ถึงแล้ว!</span><small style="font-size:.58rem">ตราที่ 2</small>
+            </div>
+          </div>
+          <div class="kicker" style="margin-top:24px">หมู่เรือนประวัติศาสตร์</div>
+          <div class="h2" id="d-title">—</div>
+          <div style="display:flex;align-items:center;gap:12px;margin:10px 0;background:var(--pink-soft);border-radius:16px;padding:9px 12px">
+            <span style="width:38px;height:38px;border-radius:50%;background:var(--pink);color:#fff;display:grid;place-items:center;flex:none">▶</span>
+            <div style="flex:1"><div style="font-weight:600;font-size:.9rem;color:var(--pink)">ฟังเรื่องเล่า</div>
+              <div style="height:4px;border-radius:9px;background:rgba(194,79,124,.25);margin-top:4px"><div style="width:0;height:100%"></div></div></div>
+            <span style="font-size:.8rem;color:var(--pink)">1:20</span>
+          </div>
+          <p id="d-text" style="margin:0;color:var(--ink-soft);font-size:.93rem;line-height:1.75"></p>
+          <div class="note" style="margin:14px 6px 0;transform:rotate(-1.2deg)">📷 <span id="d-tip"></span></div>
+        </div>
+      </div></div>
+      <div class="notes">
+        <p>เปิดหน้านี้ = ได้ตราประทับจุดนี้ (ตราเด้งลงมาเหมือนปั๊ม)</p>
+        <p>ไม่มีปุ่ม “เดินต่อ” · <b>← แผนที่</b> หรือปัดลง → กลับ <span class="go">C</span> ซึ่งชี้จุดถัดไปให้เอง</p>
+        <p>ถึงจุดสุดท้าย → ไป <span class="go">E</span> เอง</p>
+      </div>
+    </div>
+    <div class="arrow">→</div>
+
+    <!-- ===== E สรุป ===== -->
+    <div class="step">
+      <div class="step-head"><span class="letter">E</span><span class="nm">สรุปการเดิน<small>หน้าสุดท้ายของสมุด เก็บตราครบ</small></span></div>
+      <div class="phone"><div class="screen grain">
+        <div class="status"><span>10:34</span><i></i><span>●●● ▮</span></div>
+        <div style="position:absolute;inset:44px 20px 16px;display:flex;flex-direction:column">
+          <div class="hand" style="font-size:1.2rem;color:var(--pink);text-align:center;margin-top:10px">วันนี้คุณเดินครบแล้ว</div>
+          <h1 class="h-title" style="text-align:center;font-size:2.1rem">สมุดเล่มนี้<br>ปั๊มตราครบ 4 ดวง</h1>
+          <div id="stamps-e" style="display:grid;grid-template-columns:1fr 1fr;gap:14px 6px;justify-items:center;margin:20px 0 6px"></div>
+          <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;margin-top:12px;background:var(--card);border:1px solid var(--line);border-radius:18px;padding:12px 6px;text-align:center">
+            <div><div style="font:700 1.35rem/1.2 var(--f-body);color:var(--forest-dark)" id="e-km">—</div><div style="font-size:.75rem;color:var(--ink-soft)">กิโลเมตร</div></div>
+            <div style="border-left:1px dashed var(--line);border-right:1px dashed var(--line)"><div style="font:700 1.35rem/1.2 var(--f-body);color:var(--forest-dark)">42</div><div style="font-size:.75rem;color:var(--ink-soft)">นาที</div></div>
+            <div><div style="font:700 1.35rem/1.2 var(--f-body);color:var(--forest-dark)" id="e-kcal">—</div><div style="font-size:.75rem;color:var(--ink-soft)">กิโลแคลอรี</div></div>
+          </div>
+          <div style="margin-top:auto;display:flex;flex-direction:column;gap:10px">
+            <button class="btn btn-main">เดินอีกรอบ</button>
+            <div style="display:flex;gap:10px">
+              <button class="btn btn-sub" style="font-size:.92rem;padding:11px;flex:1">บันทึกภาพสมุด</button>
+              <button class="btn btn-sub" style="font-size:.92rem;padding:11px;flex:1">กลับหน้าแรก</button>
+            </div>
+          </div>
+        </div>
+      </div></div>
+      <div class="notes">
+        <p><b>เดินอีกรอบ</b> → เข้าแผนที่ <span class="go">B / C</span> แล้วเริ่มเดินทันที ไม่ผ่านหน้าขอสิทธิ์ซ้ำ</p>
+        <p><b>บันทึกภาพสมุด</b> → สร้างรูปหน้านี้ (ตรา + สถิติ) เก็บไว้หรือแชร์ลงโซเชียล</p>
+        <p>ถ้าเดินไม่ครบ ตราที่ขาดเป็นวงเส้นประ พร้อมปุ่ม “ไปเก็บตราที่เหลือ”</p>
+      </div>
+    </div>
+  </div>
+
+  <div class="kit">
+    <div class="card">
+      <h3>สี · เขียว–ชมพู รำไพพรรณี บนกระดาษครีม</h3>
+      <div class="sw">
+        <div><i style="background:var(--paper)"></i>กระดาษ<br>#F6F0E3</div>
+        <div><i style="background:var(--card)"></i>การ์ด<br>#FFFCF5</div>
+        <div><i style="background:var(--forest)"></i>เขียวป่า<br>#2F5D46</div>
+        <div><i style="background:var(--moss-soft)"></i>เขียวอ่อน<br>#DCE6D2</div>
+        <div><i style="background:var(--pink)"></i>ชมพู<br>#C24F7C</div>
+        <div><i style="background:var(--blossom)"></i>ชมพูดอก<br>#E58FB0</div>
+        <div><i style="background:#FFF8E6"></i>โน้ต<br>#FFF8E6</div>
+        <div><i style="background:var(--ink)"></i>หมึก<br>#26302A</div>
+      </div>
+    </div>
+    <div class="card">
+      <h3>ตัวอักษร</h3>
+      <div style="font:700 1.7rem/1.3 var(--f-head);color:var(--forest-dark)">หัวเรื่อง FC Mee Sakul Serif</div>
+      <div style="margin:4px 0">เนื้อความ Anuphan อ่านง่ายบนมือถือ ตัวเลขระยะทางใช้ตัวหนาขนาดใหญ่</div>
+      <div class="hand" style="font-size:1.3rem;color:var(--pink)">โน้ตลายมือ Charm ใช้กับคำแนะนำสั้นๆ</div>
+    </div>
+    <div class="card">
+      <h3>ชิ้นส่วนสมุด</h3>
+      <div style="display:flex;gap:18px;align-items:center;flex-wrap:wrap">
+        <div class="stamp-row" style="width:170px"><span class="stamp done">✓</span><span class="dash"></span><span class="stamp next">2</span><span class="dash"></span><span class="stamp todo">3</span></div>
+        <div style="position:relative;width:96px;transform:rotate(-3deg)"><span class="tape" style="top:-10px;left:12px;width:60px;height:18px"></span><div class="polaroid" style="padding:5px 5px 18px"><div class="ph" style="height:66px">รูป</div></div></div>
+        <div class="note" style="width:150px;transform:rotate(1.5deg)">โน้ตคำแนะนำ</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script src="data.js"></script>
+<script>
+(function(){
+  const K = 111320 * Math.cos(12.663 * Math.PI/180), KL = 110540;
+  const dist = (a,b) => { const dx=(b[1]-a[1])*K, dy=(b[0]-a[0])*KL; return Math.hypot(dx,dy); };
+  const len = pts => pts.slice(1).reduce((s,p,i)=>s+dist(pts[i],p),0);
+  const pt = s => [s.lat, s.lng];
+
+  /* ---------- illustration: cover ---------- */
+  document.getElementById('art-cover').innerHTML = `
+  <svg viewBox="0 0 280 170" width="280" height="170" aria-label="ภาพลายเส้นพระตำหนัก">
+    <ellipse cx="150" cy="104" rx="118" ry="50" fill="#F9DDE7" opacity=".85" filter="url(#wash)"/>
+    <ellipse cx="52" cy="92" rx="38" ry="40" fill="#DCE6D2" filter="url(#wash)"/>
+    <ellipse cx="246" cy="100" rx="30" ry="34" fill="#DCE6D2" filter="url(#wash)"/>
+    <g fill="none" stroke="#1E3F2F" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round" filter="url(#rough)">
+      <path d="M8 142 Q140 137 272 143"/>
+      <path d="M72 141 V98 H208 V141"/>
+      <path d="M58 99 H222 L198 84 H82 Z"/>
+      <path d="M92 84 V68 H188 V84"/>
+      <path d="M80 69 L140 36 L200 69 Z"/><path d="M140 36 V28"/>
+      <path d="M122 54 Q140 46 158 54"/>
+      ${[86,110,162,186].map(x=>`<rect x="${x}" y="108" width="13" height="22" rx="1"/><path d="M${x+6.5} 108 V130"/>`).join('')}
+      <path d="M128 141 V114 Q140 104 152 114 V141"/>
+      ${[104,133,162].map(x=>`<rect x="${x}" y="72" width="12" height="9"/>`).join('')}
+      <path d="M120 141 H160 M116 145 H164"/>
+      <path d="M50 142 V108"/><path d="M50 116 L40 106 M50 122 L60 112"/>
+      <circle cx="50" cy="92" r="18"/><circle cx="36" cy="102" r="12"/><circle cx="64" cy="102" r="12"/>
+      <path d="M246 142 V114"/><circle cx="246" cy="100" r="15"/><circle cx="235" cy="110" r="9"/><circle cx="257" cy="110" r="9"/>
+    </g>
+    <g stroke="#C24F7C" stroke-width="1.4" fill="none" stroke-linecap="round" filter="url(#rough)">
+      <path d="M18 150 q4-6 8 0 q4-6 8 0"/><path d="M222 152 q4-6 8 0 q4-6 8 0"/>
+    </g>
+  </svg>`;
+
+  /* ---------- map renderer ---------- */
+  const TOTAL = len(APPROACH) + len(TOUR_ROUTE);
+  function renderMap(el, o){
+    const W = 340, H = 740;
+    const P = ([la,ln]) => [ +(o.cx + (ln-o.c[1])*K/o.s).toFixed(1), +(o.cy - (la-o.c[0])*KL/o.s).toFixed(1) ];
+    const line = pts => pts.map(p=>P(p).join(',')).join(' ');
+    /* เส้นเดิน: ตัดจุดยิบย่อย (เช่นวนรอบวงเวียน) แล้วลากโค้งนุ่มๆ แทนมุมแหลม */
+    const simplify = (pts, tol) => {
+      if (pts.length < 3) return pts;
+      const m = p => [p[1]*K, p[0]*KL], a = m(pts[0]), b = m(pts[pts.length-1]);
+      let mi = 0, md = 0;
+      for (let i=1;i<pts.length-1;i++){ const p = m(pts[i]), dx=b[0]-a[0], dy=b[1]-a[1], L=Math.hypot(dx,dy)||1;
+        const d = Math.abs(dy*p[0]-dx*p[1]+b[0]*a[1]-b[1]*a[0])/L; if (d>md){ md=d; mi=i; } }
+      return md <= tol ? [pts[0], pts[pts.length-1]] : simplify(pts.slice(0,mi+1),tol).slice(0,-1).concat(simplify(pts.slice(mi),tol));
+    };
+    const smooth = pts => {
+      const q = simplify(pts, 6).map(P);
+      if (q.length < 3) return `M${q.map(p=>p.join(' ')).join(' L')}`;
+      let d = `M${q[0][0]} ${q[0][1]}`;
+      for (let i=0;i<q.length-1;i++){
+        const p0=q[i-1]||q[i], p1=q[i], p2=q[i+1], p3=q[i+2]||p2, t=.18;
+        d += ` C${(p1[0]+(p2[0]-p0[0])*t).toFixed(1)} ${(p1[1]+(p2[1]-p0[1])*t).toFixed(1)} ${(p2[0]-(p3[0]-p1[0])*t).toFixed(1)} ${(p2[1]-(p3[1]-p1[1])*t).toFixed(1)} ${p2[0]} ${p2[1]}`;
+      }
+      return d;
+    };
+    /* ลูกศรบอกทิศ วางทุกๆ ~42px ตามเส้น */
+    const chevrons = pts => {
+      const q = simplify(pts, 6).map(P); let out = '', acc = 22;
+      for (let i=0;i<q.length-1;i++){
+        const [x1,y1]=q[i], [x2,y2]=q[i+1], L=Math.hypot(x2-x1,y2-y1), ang=Math.atan2(y2-y1,x2-x1)*180/Math.PI;
+        for (; acc < L; acc += 42){ const f=acc/L;
+          out += `<path d="M-3 -3.5 L1.5 0 L-3 3.5" transform="translate(${(x1+(x2-x1)*f).toFixed(1)} ${(y1+(y2-y1)*f).toFixed(1)}) rotate(${ang.toFixed(0)})" fill="none" stroke="#fff" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>`; }
+        acc -= L;
+      }
+      return out;
+    };
+    /* 3 แบบ: now = ทางที่ต้องเดินตอนนี้, done = เดินแล้ว, later = ทางอื่นในทัวร์ (จางๆ) */
+    const leg = (pts, kind) => {
+      const d = smooth(pts);
+      if (kind === 'now')  return `<path d="${d}" stroke="#FFFCF5" stroke-width="11"/><path d="${d}" stroke="#C24F7C" stroke-width="6"/>${chevrons(pts)}`;
+      if (kind === 'done') return `<path d="${d}" stroke="#FFFCF5" stroke-width="9"/><path d="${d}" stroke="#2F5D46" stroke-width="4.5"/>`;
+      if (kind === 'past') return `<path d="${d}" stroke="#8A9590" stroke-opacity=".55" stroke-width="3"/>`;
+      return `<path d="${d}" stroke="#2F5D46" stroke-opacity=".45" stroke-width="3.2" stroke-dasharray="0.1 7"/>`;
+    };
+    let rnd = 7; const r = () => (rnd = (rnd*9301+49297)%233280)/233280;
+    let trees = '';
+    for (let i=0;i<70;i++){ const x=r()*W, y=r()*H, rr=6+r()*12;
+      trees += `<circle cx="${x.toFixed(0)}" cy="${y.toFixed(0)}" r="${rr.toFixed(0)}" fill="#DCE6D2" stroke="#8AA37B" stroke-width="1" opacity=".75"/>`; }
+    let grid = '';
+    for (let x=20;x<W;x+=34) grid += `<path d="M${x} 0 V${H}" />`;
+    for (let y=20;y<H;y+=34) grid += `<path d="M0 ${y} H${W}" />`;
+    const roads = [APPROACH, TOUR_ROUTE].map(p=>`<path d="${smooth(p)}"/>`).join("");
+    const stops = STOPS.map((s,i)=>{
+      const [x,y] = P(pt(s)); const st = o.state[i];
+      const fill = st==='done' ? '#2F5D46' : st==='next' ? '#E58FB0' : '#FFFCF5';
+      const tc = st==='done' ? '#fff' : st==='next' ? '#26302A' : '#2F5D46';
+      const ring = st==='next' ? `<circle cx="${x}" cy="${y}" r="21" fill="none" stroke="#E58FB0" stroke-width="2" stroke-dasharray="4 4"/>` : '';
+      const label = o.labels ? `<text x="${x + (o.labels[i]||[16,4])[0]}" y="${y + (o.labels[i]||[16,4])[1]}" font-size="12.5" font-family="Charm, cursive" font-weight="700" fill="#26302A" stroke="#F6F0E3" stroke-width="4" paint-order="stroke" text-anchor="${(o.labels[i]||[16])[0]<0?'end':'start'}">${o.names[i]}</text>` : '';
+      return `${ring}<circle cx="${x}" cy="${y}" r="14" fill="${fill}" stroke="${st==='todo'?'#2F5D46':'#FFFCF5'}" stroke-width="2.5"/>
+        <text x="${x}" y="${y+4.5}" font-size="13" font-weight="700" font-family="Anuphan" fill="${tc}" text-anchor="middle">${st==='done'?'✓':i+1}</text>${label}`;
+    }).join('');
+    const [gx,gy] = P(pt(ENTRY));
+    const entry = `<rect x="${gx-13}" y="${gy-13}" width="26" height="26" rx="7" fill="#26302A"/><text x="${gx}" y="${gy+5}" fill="#fff" font-size="13" font-weight="700" font-family="Anuphan" text-anchor="middle">P</text>
+      <text x="${gx+18}" y="${gy+5}" font-size="13" font-family="Charm" font-weight="700" fill="#26302A" stroke="#F6F0E3" stroke-width="4" paint-order="stroke">ประตู 1 · จอดรถ</text>`;
+    let extra = '';
+    if (o.golf){ const [x,y] = P([ACTIVITIES[0].lat, ACTIVITIES[0].lng]);
+      extra += `<g transform="translate(${x+16},${y-6})"><path d="M0 18 V0 L12 4 L0 8" fill="#C24F7C" stroke="#26302A" stroke-width="1.4"/></g>
+        <text x="${x+32}" y="${y+6}" font-size="13" font-family="Charm" font-weight="700" fill="#C24F7C" stroke="#F6F0E3" stroke-width="4" paint-order="stroke">สนามกอล์ฟ</text>`; }
+    if (o.fac){ extra += FACILITIES.map(f=>{ const [x,y]=P([f.lat,f.lng]); const ic={wc:'🚻',water:'💧',bench:'🪑',park:''}[f.type]; if(!ic) return '';
+        return `<rect x="${x-11}" y="${y-11}" width="22" height="22" rx="6" fill="#FFFCF5" stroke="#8AA37B" stroke-width="1.5"/><text x="${x}" y="${y+5}" font-size="12" text-anchor="middle">${ic}</text>`; }).join(''); }
+    const [mx,my] = P(o.me);
+    const me = `<path d="M${mx} ${my} L${mx-16} ${my-34} Q${mx} ${my-42} ${mx+16} ${my-34} Z" fill="#3B82C4" opacity=".16" transform="rotate(${o.heading||0} ${mx} ${my})"/>
+      <circle cx="${mx}" cy="${my}" r="16" fill="#3B82C4" opacity=".16"/><circle cx="${mx}" cy="${my}" r="7.5" fill="#3B82C4" stroke="#fff" stroke-width="3"/>`;
+    el.innerHTML = `<svg viewBox="0 0 ${W} ${H}" width="${W}" height="${H}" style="display:block">
+      <rect width="${W}" height="${H}" fill="#F3ECDD"/>
+      <g stroke="#26302A" stroke-opacity=".05" stroke-width="1">${grid}</g>
+      <g filter="url(#rough)">${trees}</g>
+      <g fill="none" stroke="#E5D9C2" stroke-width="15" stroke-linecap="round" stroke-linejoin="round">${roads}</g>
+      <g fill="none" stroke-linecap="round" stroke-linejoin="round">${o.paths(leg)}</g>
+      ${extra}${entry}${stops}${me}
+    </svg>`;
+  }
+
+  /* B: เดินไปที่วัง — me ใกล้ประตู 1 */
+  const meB = APPROACH[4];
+  const leftB = len(APPROACH.slice(4));
+  renderMap(document.getElementById('map-b'), {
+    c:[12.6623,102.0953], cx:165, cy:285, s:1.75, me:meB, heading:40, golf:true,
+    state:['next','todo','todo','todo'],
+    paths: leg => leg(TOUR_ROUTE, 'later') + leg(APPROACH.slice(0,5), 'done') + leg(APPROACH.slice(4), 'now')
+  });
+  document.getElementById('b-left').textContent = Math.round(leftB/10)*10;
+  document.getElementById('b-min').textContent = Math.max(1, Math.round(leftB / (CONFIG.walkSpeedKmh*1000/60)));
+
+  /* C: ในวัง — จุด 1 แล้ว กำลังไปจุด 2 */
+  const s1 = pt(STOPS[0]), s2 = pt(STOPS[1]);
+  const meC = [s1[0] + (s2[0]-s1[0])*.45, s1[1] + (s2[1]-s1[1])*.45];
+  renderMap(document.getElementById('map-c'), {
+    c:[12.66345,102.09665], cx:170, cy:280, s:.75, me:meC, heading:-125, fac:true,
+    state:['done','next','todo','todo'],
+    names:['พระตำหนักเทา','เรือน 3 สี','อนุสาวรีย์','เรือนท่านเป้ง'],
+    labels:[[18,5],[-20,-12],[18,5],[18,5]],
+    paths: leg => leg(APPROACH, 'past') + leg(TOUR_ROUTE.slice(1), 'later') + leg([s1, meC], 'done') + leg([meC, s2], 'now')
+  });
+  document.getElementById('c-title').textContent = STOPS[1].title.th;
+  document.getElementById('c-left').textContent = Math.round(dist(meC, s2));
+
+  /* D */
+  document.getElementById('d-title').textContent = STOPS[1].title.th;
+  document.getElementById('d-text').textContent = STOPS[1].text.th;
+  document.getElementById('d-tip').textContent = STOPS[1].photoTip.th;
+
+  /* A + E */
+  const km = TOTAL/1000;
+  document.getElementById('cover-dist').textContent = `🚶 ~${km.toFixed(1)} กม.`;
+  document.getElementById('e-km').textContent = km.toFixed(2);
+  document.getElementById('e-kcal').textContent = Math.round(km*CONFIG.kcalPerKm);
+
+  const icons = [
+    '<path d="M4 34h32M8 34V22h24v12M5 22l15-11 15 11M16 34v-7h8v7M20 11V7"/>',
+    '<path d="M3 34h34M5 34v-9l5-5 5 5v9M15 34V22l5-5 5 5v12M25 34v-9l5-5 5 5v9"/>',
+    '<path d="M11 35h18M13 35v-6h14v6M16 29v-5h8v5M20 24v-6"/><circle cx="20" cy="12" r="4"/><path d="M15 21q5-4 10 0"/>',
+    '<path d="M4 34h32M8 34V20l12-10 12 10v14M16 34v-8h8v8M14 22h4v3h-4zM22 22h4v3h-4z"/>'
+  ];
+  const colors = ['#2F5D46','#C24F7C','#2F5D46','#C24F7C'];
+  const short = ['พระตำหนักเทา','เรือน 3 สี','อนุสาวรีย์','เรือนท่านเป้ง'];
+  const rot = [-8,6,4,-5];
+  document.getElementById('stamps-e').innerHTML = STOPS.map((s,i)=>`
+    <div class="big-stamp" style="color:${colors[i]};transform:rotate(${rot[i]}deg);width:112px;height:112px;filter:url(#rough)">
+      <svg width="40" height="40" viewBox="0 0 40 40" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${icons[i]}</svg>
+      <small>${i+1} · ${short[i]}</small>
+    </div>`).join('');
+})();
+</script>
+</body>
+</html>

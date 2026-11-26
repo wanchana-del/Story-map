@@ -59,7 +59,7 @@
     .leftcol { left: 422px; }
   }
 
-  .toast-bk { position: fixed; left: 50%; top: calc(var(--top) + 62px); z-index: 1500; transform: translate(-50%, -8px); opacity: 0; pointer-events: none;
+  .toast-bk { position: fixed; left: 50%; top: calc(var(--top) + 62px); z-index: 1900; transform: translate(-50%, -8px); opacity: 0; pointer-events: none;
     display: flex; align-items: center; gap: 8px; max-width: calc(100% - 24px); padding: 10px 16px; border-radius: 999px;
     background: var(--forest-dark); color: var(--paper); font-weight: 600; box-shadow: var(--shadow-soft); transition: opacity .25s, transform .25s; }
   .toast-bk.show { opacity: 1; transform: translate(-50%, 0); }
@@ -78,9 +78,9 @@
   .badge-pin.act { background: var(--moss-soft); } .badge-pin.act .ico { color: var(--forest); }
   .me { position: relative; width: 22px; height: 22px; }
   .me .dot { position: absolute; inset: 3px; border-radius: 50%; background: var(--me); border: 3px solid #fff; box-shadow: 0 0 0 1px rgba(0,0,0,.2); }
-  .me .arrow { position: absolute; left: 50%; top: -12px; width: 0; height: 0; margin-left: -7px; border: 7px solid transparent; border-bottom: 12px solid var(--me);
-    transform-origin: 7px 23px; display: none; }
-  .me.has-heading .arrow { display: block; }
+  /* direction: a soft beam + an arrow on the dot, both turned to where you face / walk */
+  .me .dir { position: absolute; left: -25px; top: -25px; width: 72px; height: 72px; display: none; pointer-events: none; transition: transform .3s ease-out; }
+  .me.has-heading .dir { display: block; }
   .leaflet-container { font-family: var(--f-body); }
   .leaflet-popup-content-wrapper { border-radius: 16px; box-shadow: var(--shadow-soft); }
   .leaflet-popup-content { margin: 12px 14px; font-size: .95rem; line-height: 1.6; }
@@ -91,7 +91,7 @@
   .sheet.offcanvas-bottom { height: auto; max-height: 90vh; max-width: 560px; margin: 0 auto; border: 0; border-radius: 28px 28px 0 0; background: var(--card); }
   .sheet .offcanvas-body { padding: 8px 20px max(22px, env(safe-area-inset-bottom)); }
   .sheet .grab { width: 40px; height: 5px; border-radius: 3px; background: var(--line); margin: 6px auto 14px; }
-  .stop-photo { aspect-ratio: 4 / 3; border-radius: 22px; }
+  .stop-photo { aspect-ratio: 4 / 3; border-radius: 2px; }
   .stamp { position: absolute; right: 12px; top: 12px; z-index: 3; transform: rotate(-12deg); }
   .row-stop { display: flex; align-items: center; gap: 12px; width: 100%; padding: 10px; border: 0; border-radius: 16px; background: transparent; text-align: left; color: inherit; }
   .row-stop:hover { background: var(--paper); }
@@ -108,6 +108,28 @@
   .overlay { position: fixed; inset: 0; z-index: 1800; background: var(--paper); overflow: auto; }
   .overlay[hidden] { display: none; }
   .modal-content { border: 0; border-radius: 28px; background: var(--card); }
+  /* ---- v3 scrapbook ---- */
+  .topbar { border-radius: 18px; padding: 7px 12px 7px 7px; justify-content: flex-start; }
+  .tb-back { width: 36px; height: 36px; border-radius: 50%; display: grid !important; place-items: center; flex: none; background: var(--paper); }
+  .tb-info { flex: 1; min-width: 0; display: flex; align-items: center; }
+  .tb-step { font-weight: 600; font-size: .92rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+  .tb-count { margin-left: 10px; font-size: .78rem; color: var(--ink-soft); white-space: nowrap; }
+  .mapbtns { position: fixed; right: 12px; bottom: calc(var(--panel-h, 0px) + 14px); z-index: 1000; display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
+  .mapbtn { display: inline-flex; align-items: center; gap: 6px; border: 1.5px solid var(--line); background: var(--card); color: var(--forest-dark);
+    border-radius: 999px; padding: 7px 14px 7px 10px; font: 600 .85rem/1.3 var(--f-body); box-shadow: 0 3px 10px rgba(40,30,20,.14); }
+  .mapbtn.on { background: var(--forest); border-color: var(--forest); color: #fff; }
+  @media (min-width: 900px) { .mapbtns { bottom: 16px; } }
+  .panel > .tape { top: -11px; left: 28px; transform: rotate(-5deg); }
+  .nbig { font: 700 2rem/1.15 var(--f-body); color: var(--pink); margin-top: 6px; }
+  .nbig:empty { display: none; }
+  .nthumb { flex: none; width: 66px; transform: rotate(-3deg); }
+  .nthumb .photo { width: 56px; height: 56px; }
+  .nthumb.icon { width: 56px; height: 56px; border-radius: 16px; display: grid; place-items: center; background: var(--blossom-soft); color: var(--pink); transform: none; }
+  .chev { width: 14px; height: 14px; display: block; }
+  .pin.cur { box-shadow: 0 0 0 5px rgba(229,143,176,.35), 0 2px 6px rgba(0,0,0,.25); }
+  .stats-line { font-size: .8rem; color: var(--ink-soft); text-align: center; margin: 8px 0 2px; }
+  .stats-line:empty { display: none; }
+  .note[hidden] { display: none; }
   .stamp-lbl { display: -webkit-box; -webkit-line-clamp: 1; -webkit-box-orient: vertical; overflow: hidden; padding: 0 4px; }
 </style>
 </head>
@@ -116,8 +138,8 @@
 <div id="map" aria-label="map"></div>
 
 <header class="topbar">
-  <a href="index.html" data-keep-lang><span data-icon="back"></span><span class="t-h3 ttl" id="title"></span></a>
-  <div class="lang-switch" aria-label="Language"></div>
+  <a href="index.html" data-keep-lang class="tb-back" aria-label="home"><span data-icon="back" data-size="18"></span></a>
+  <div class="tb-info" id="topInfo"></div>
 </header>
 
 <div class="toast-bk" id="toast" role="status" aria-live="polite"></div>
@@ -127,38 +149,33 @@
   <div class="fac-chips" id="facChips" hidden></div>
 </div>
 
-<nav class="ctrl" aria-label="Map controls">
-  <button type="button" id="bFollow" class="on"></button>
-  <button type="button" id="bCompass"></button>
-  <button type="button" id="bLayer"></button>
-  <button type="button" id="bFac"></button>
-  <button type="button" id="bWhole"></button>
-</nav>
+<div class="mapbtns" aria-label="Map controls">
+  <button type="button" class="mapbtn" id="bFollow"></button>
+  <button type="button" class="mapbtn" id="bFac"></button>
+  <button type="button" class="mapbtn" id="bLayer"></button>
+</div>
 
 <section class="panel" id="panel">
+  <span class="tape" aria-hidden="true"></span>
   <button type="button" class="handle" id="bHandle" aria-label="expand / collapse"></button>
-  <div class="tw-flex tw-items-center tw-gap-3.5 tw-mb-3" id="nextRow" role="button" tabindex="0">
-    <div class="next-thumb" id="nNum">1</div>
+  <div class="tw-flex tw-items-center tw-gap-3.5" id="nextRow" role="button" tabindex="0">
+    <div id="nThumb"></div>
     <div class="tw-flex-1 tw-min-w-0">
-      <div class="t-caps" id="nKick"></div>
-      <div class="t-h3" id="nTitle"></div>
-      <div class="t-small" id="nSub"></div>
+      <div class="kicker" id="nKick"></div>
+      <div class="t-h2" style="font-size:1.25rem;line-height:1.4;color:var(--forest-dark)" id="nTitle"></div>
     </div>
   </div>
+  <div class="nbig" id="nBig"></div>
+  <div class="t-small" id="nSub"></div>
   <div class="collapsible">
-    <div class="track"><i id="prog"></i></div>
-    <div class="tw-flex tw-justify-between t-small tw-mt-1 tw-mb-3"><span id="pStart"></span><span id="pPct" style="color:var(--forest);font-weight:600"></span><span id="pEnd" class="tw-text-right"></span></div>
-    <div class="stats tw-mb-3">
-      <div><b id="sDist">0</b><span id="lDist"></span></div>
-      <div><b id="sTime">0:00</b><span id="lTime"></span></div>
-      <div><b id="sKcal">0</b><span id="lKcal"></span></div>
-      <div><b id="sVis">0/0</b><span id="lVis"></span></div>
-    </div>
+    <div class="track-pink tw-mt-3"><i id="prog"></i></div>
+    <div class="note tw-mt-4 tw-mx-1" style="transform:rotate(-1deg)" id="nNote"></div>
+    <div class="stats-line" id="statsLine"></div>
   </div>
-  <div class="tw-flex tw-gap-2">
+  <div class="tw-flex tw-gap-2 tw-mt-3">
     <button type="button" class="btn btn-forest tw-flex-1" id="bStart"></button>
-    <button type="button" class="btn btn-card" id="bList"></button>
-    <button type="button" class="btn btn-ghost" id="bEnd"></button>
+    <button type="button" class="btn btn-card tw-flex-1" id="bList"></button>
+    <button type="button" class="btn btn-card tw-flex-1" id="bEnd"></button>
   </div>
 </section>
 
@@ -169,12 +186,13 @@
       <a href="index.html" data-keep-lang class="tw-flex tw-items-center tw-gap-1.5 tw-no-underline" style="color:var(--ink)"><span data-icon="back"></span><span data-i18n="back"></span></a>
       <div class="lang-switch"></div>
     </div>
-    <div class="grain tw-rounded-[28px] tw-overflow-hidden" style="background:var(--pink-soft)">
-      <svg viewBox="0 0 350 200" class="tw-block tw-w-full tw-h-auto" aria-hidden="true"><rect width="350" height="200" fill="#F9DDE7"/><circle cx="175" cy="104" r="76" fill="#FCEAF0"/><circle cx="175" cy="104" r="50" fill="#DCE6D2"/><rect x="140" y="32" width="70" height="140" rx="14" fill="#1F2A24"/><rect x="146" y="44" width="58" height="116" rx="8" fill="#ECE7DA"/><path d="M150 134 C165 114 172 126 182 102 C188 88 196 86 200 74" stroke="#2F5D46" stroke-width="4" fill="none" stroke-linecap="round"/><path d="M175 64c-9 0-15 7-15 15 0 11 15 24 15 24s15-13 15-24c0-8-6-15-15-15z" fill="#C24F7C"/><circle cx="175" cy="79" r="5" fill="#FFFDF8"/><circle cx="66" cy="56" r="6" fill="#E58FB0"/><circle cx="290" cy="146" r="8" fill="#8AA37B"/><circle cx="300" cy="46" r="4" fill="#C24F7C"/></svg>
+    <div class="tw-relative tw-mx-3 tw-mt-3 tilt-l">
+      <span class="tape" style="top:-12px;left:50%;margin-left:-46px;transform:rotate(3deg)"></span>
+      <div class="polaroid"><div id="readyArt" style="background:#FBF6EC" class="tw-px-2 tw-pt-2"></div><div class="cap" data-i18n="coverCap"></div></div>
     </div>
     <div>
-      <p class="t-script tw-mb-1" data-i18n="readyScript"></p>
-      <h1 class="t-h1 tw-mb-2" data-i18n-html="readyTitle"></h1>
+      <p class="hand tw-mb-0" style="color:var(--pink);font-size:1.2rem" data-i18n="readyScript"></p>
+      <h1 class="t-h1 tw-mb-2" style="color:var(--forest-dark)" data-i18n-html="readyTitle"></h1>
       <p class="t-small tw-mb-0" data-i18n="readyBody"></p>
     </div>
     <ol class="card-soft tw-list-none tw-m-0 tw-p-4 tw-grid tw-gap-3">
@@ -185,7 +203,7 @@
     <div class="tw-mt-auto tw-grid tw-gap-2.5">
       <button type="button" class="btn btn-forest" id="rGo"><span data-icon="locate" data-size="18"></span><span data-i18n="readyGo"></span></button>
       <button type="button" class="btn btn-card" id="rSim" data-i18n="readySim"></button>
-      <button type="button" class="btn btn-link tw-no-underline" style="color:var(--ink-soft)" id="rLook" data-i18n="readyLook"></button>
+      <button type="button" class="btn-text" id="rLook" data-i18n="readyLook"></button>
     </div>
   </div>
 </div>
@@ -225,16 +243,16 @@
 
 <!-- ============ 07 Summary ============ -->
 <div class="overlay" id="summary" hidden>
-  <div class="wrap tw-py-10 tw-min-h-full tw-flex tw-flex-col tw-gap-5 tw-text-center">
-    <div><p class="t-script tw-mb-1" id="sumScript"></p><h1 class="t-display" id="sumTitle"></h1></div>
-    <div class="card-soft tw-p-5 tw-text-left">
-      <p class="t-caps tw-mb-3" style="color:var(--ink-soft)" data-i18n="passport"></p>
-      <div class="tw-grid tw-grid-cols-3 tw-gap-y-4 tw-text-center" id="stamps"></div>
-    </div>
-    <div class="tw-grid tw-grid-cols-2 tw-gap-2.5" id="sumStats"></div>
-    <div class="tw-mt-auto tw-flex tw-gap-2.5">
-      <a class="btn btn-card tw-flex-1" href="index.html" data-keep-lang data-i18n="close"></a>
-      <button type="button" class="btn btn-forest tw-flex-1" id="bAgain" data-i18n="walkAgain"></button>
+  <div class="wrap tw-py-10 tw-min-h-full tw-flex tw-flex-col tw-gap-4 tw-text-center">
+    <div><p class="hand tw-mb-0" style="color:var(--pink);font-size:1.3rem" id="sumScript"></p><h1 class="t-h1" style="color:var(--forest-dark);font-size:2rem" id="sumTitle"></h1></div>
+    <div class="tw-grid tw-grid-cols-2 tw-gap-y-5 tw-justify-items-center tw-py-2" id="stamps"></div>
+    <div class="card-soft tw-grid tw-grid-cols-3 tw-py-3" id="sumStats"></div>
+    <div class="tw-mt-auto tw-grid tw-gap-2.5">
+      <button type="button" class="btn btn-forest" id="bAgain" data-i18n="walkAgain"></button>
+      <div class="tw-flex tw-gap-2.5">
+        <button type="button" class="btn btn-card tw-flex-1" id="bShare"></button>
+        <a class="btn btn-card tw-flex-1" href="index.html" data-keep-lang id="bHome"></a>
+      </div>
     </div>
   </div>
 </div>
@@ -255,21 +273,33 @@ const W = {
     offRoute:d=>`ออกนอกเส้นทาง ${d}`, arrived:n=>`ถึงแล้ว · ${n}`, allDone:"ถึงปลายทางแล้ว 🎉", accuracy:a=>`GPS ±${a} ม.`,
     dist:"ระยะทาง", time:"เวลา", kcal:"กิโลแคล", visited:"ผ่านแล้ว", nextOf:(n,t)=>`ถัดไป · จุดที่ ${n} จาก ${t}`, stopN:n=>`จุดที่ ${n}`,
     noGps:"อุปกรณ์นี้ไม่รองรับ GPS", gpsDenied:"เปิด GPS ไม่ได้ — อนุญาตการเข้าถึงตำแหน่ง แล้วลองใหม่", needHttps:"GPS บนมือถือใช้ได้เมื่อเปิดผ่าน https:// เท่านั้น",
-    compassNo:"อุปกรณ์นี้ไม่มีเข็มทิศ", detail:"รายละเอียด", goHere:"ดูบนแผนที่", done:"✓ ผ่านแล้ว", nextTag:"จุดถัดไป" },
+    compassNo:"อุปกรณ์นี้ไม่มีเข็มทิศ", dragHint:"ลากจุดดูตำแหน่งเฉยๆ — ไม่นับว่าไปถึง ต้องเดินไปจริง",  detail:"รายละเอียด", goHere:"ดูบนแผนที่", done:"✓ ผ่านแล้ว", nextTag:"จุดถัดไป",
+    myPos:"ตำแหน่งฉัน", facBtn:"ห้องน้ำ · ที่พัก", step1:"ขั้น 1 จาก 2 · เดินไปที่วัง", stampsOf:(n,t)=>`ตรา ${n}/${t}`, seeAll:n=>`ดูทั้ง ${n} จุด`, endWalk:"จบการเดิน",
+    walkedLine:(d,tm,k)=>`เดินแล้ว ${d} · ${tm} · ${k} กิโลแคล`, followPink:"เดินตามเส้นสีชมพู", left:d=>`อีก ${d}`, about:e=>`ราว ${e}`,
+    golfNote:"ระหว่างทางผ่านสนามกอล์ฟ ⛳ แวะตีได้นะ!", tourNote:"เดินไปถึงจุดไหน เรื่องเล่าจะเปิดขึ้นเอง", toMap:"แผนที่", arrived2:"ถึงแล้ว!", stampN:n=>`ตราที่ ${n}`,
+    share:"แชร์ผลการเดิน", home:"กลับหน้าแรก", shareText:(n,t,d)=>`วันนี้เดินชมสวนบ้านแก้ว ได้ตรา ${n}/${t} ดวง · ${d}`, copied:"คัดลอกข้อความแล้ว" },
   en: { start:"Start", pause:"Pause", resume:"Resume", finish:"Finish", stops:"Stops", sim:"Simulate", simOn:"Stop sim",
     follow:"Follow me", compass:"Compass", sat:"Satellite", map:"Map", whole:"Whole route",
     idle:"Tap Start when you're at Gate 1", locating:"Finding your GPS position…", toStart:d=>`${d} to the start`, nextDist:(d,e)=>`${d} · about ${e}`,
     offRoute:d=>`Off route by ${d}`, arrived:n=>`Arrived · ${n}`, allDone:"You've reached the destination 🎉", accuracy:a=>`GPS ±${a} m`,
     dist:"Distance", time:"Time", kcal:"kcal", visited:"Visited", nextOf:(n,t)=>`Next · stop ${n} of ${t}`, stopN:n=>`Stop ${n}`,
     noGps:"This device has no GPS", gpsDenied:"Can't access GPS — allow location and try again", needHttps:"On phones, GPS only works over https://",
-    compassNo:"No compass on this device", detail:"Details", goHere:"Show on map", done:"✓ Visited", nextTag:"Next stop" },
+    compassNo:"No compass on this device", dragHint:"Dragging the dot is just a preview — stops only count when you really walk there",  detail:"Details", goHere:"Show on map", done:"✓ Visited", nextTag:"Next stop",
+    myPos:"My location", facBtn:"Toilets · rest", step1:"Step 1 of 2 · walk to the palace", stampsOf:(n,t)=>`Stamps ${n}/${t}`, seeAll:n=>`All ${n} stops`, endWalk:"Finish",
+    walkedLine:(d,tm,k)=>`Walked ${d} · ${tm} · ${k} kcal`, followPink:"Follow the pink line", left:d=>`${d} to go`, about:e=>`about ${e}`,
+    golfNote:"You'll pass the golf course ⛳ — stop for a swing!", tourNote:"Each stop's story opens by itself when you get there", toMap:"Map", arrived2:"Arrived!", stampN:n=>`Stamp ${n}`,
+    share:"Share my walk", home:"Back to home", shareText:(n,t,d)=>`I walked Suan Ban Kaew today — ${n}/${t} stamps · ${d}`, copied:"Text copied" },
   zh: { start:"开始", pause:"暂停", resume:"继续", finish:"结束", stops:"站点", sim:"模拟步行", simOn:"停止模拟",
     follow:"跟随位置", compass:"指南针", sat:"卫星图", map:"地图", whole:"全程",
     idle:"到达1号门后点击开始", locating:"正在获取 GPS 位置…", toStart:d=>`距起点 ${d}`, nextDist:(d,e)=>`还有 ${d} · 约 ${e}`,
     offRoute:d=>`偏离路线 ${d}`, arrived:n=>`已到达 · ${n}`, allDone:"已到达终点 🎉", accuracy:a=>`GPS ±${a} 米`,
     dist:"距离", time:"时间", kcal:"千卡", visited:"已到", nextOf:(n,t)=>`下一站 · 第 ${n} / ${t} 站`, stopN:n=>`第 ${n} 站`,
     noGps:"此设备不支持 GPS", gpsDenied:"无法使用 GPS — 请允许位置权限后重试", needHttps:"手机上需通过 https:// 打开才能使用 GPS",
-    compassNo:"此设备没有指南针", detail:"详情", goHere:"在地图上查看", done:"✓ 已到", nextTag:"下一站" }
+    compassNo:"此设备没有指南针", dragHint:"拖动圆点仅供预览——必须真正走到才算到达",  detail:"详情", goHere:"在地图上查看", done:"✓ 已到", nextTag:"下一站",
+    myPos:"我的位置", facBtn:"洗手间 · 休息", step1:"第 1 步 / 共 2 步 · 走到宫殿", stampsOf:(n,t)=>`印章 ${n}/${t}`, seeAll:n=>`全部 ${n} 站`, endWalk:"结束",
+    walkedLine:(d,tm,k)=>`已走 ${d} · ${tm} · ${k} 千卡`, followPink:"沿粉色线走", left:d=>`还有 ${d}`, about:e=>`约 ${e}`,
+    golfNote:"途中经过高尔夫球场 ⛳ 可以去打几杆！", tourNote:"走到每一站，故事会自动打开", toMap:"地图", arrived2:"到啦！", stampN:n=>`第 ${n} 枚印章`,
+    share:"分享步行记录", home:"返回首页", shareText:(n,t,d)=>`今天漫步班盖花园，集到 ${n}/${t} 枚印章 · ${d}`, copied:"已复制文字" }
 };
 const w = () => W[lang];
 
@@ -281,7 +311,7 @@ const S = {
   mode: "idle",          // idle | running | paused | finished
   source: null,          // gps | sim | drag
   pos: null, snap: null, walked: 0, elapsed: 0, runSince: 0, lastCounted: null,
-  visited: new Set(store.get("visited", [])), heading: null, follow: true
+  visited: new Set(store.get("visited", [])), heading: null, moveHeading: null, follow: true
 };
 
 /* ---------- map ---------- */
@@ -295,15 +325,32 @@ const layers = {
 };
 let layer = "map"; layers.map.addTo(map);
 
-L.polyline(ROUTE, { color:"#FFFFFF", weight:11, opacity:.9, lineJoin:"round" }).addTo(map);
-// approach (Gate 1 → palace) = grey dashes · tour inside the palace = pink dots
-L.polyline(APPROACH, { color:"#7A8A8E", weight:4, opacity:.75, dashArray:"6 8", lineCap:"round" }).addTo(map);
-L.polyline(TOUR_ROUTE, { color:"#C24F7C", weight:5, opacity:.6, dashArray:"1 9", lineCap:"round" }).addTo(map);
-const walkedLine = L.polyline([], { color:"#2F5D46", weight:6, lineJoin:"round" }).addTo(map);
+// white edge under everything · faint dots = the rest of the walk · green = walked · pink + arrows = the leg to walk now
+L.polyline(ROUTE, { color:"#FFFCF5", weight:12, opacity:.85, lineJoin:"round", lineCap:"round" }).addTo(map);
+L.polyline(ROUTE, { color:"#2F5D46", weight:4, opacity:.5, dashArray:"1 9", lineCap:"round" }).addTo(map);
+const walkedLine = L.polyline([], { color:"#2F5D46", weight:6, lineJoin:"round", lineCap:"round" }).addTo(map);
+const nowLine = L.polyline([], { color:"#C24F7C", weight:7, lineJoin:"round", lineCap:"round" }).addTo(map);
+const chevLayer = L.layerGroup().addTo(map);
+function routeBetween(a, b){
+  if (b <= a) return [];
+  const out = [pointAt(a)];
+  for (let i=0;i<ROUTE.length;i++) if (CUM[i] > a && CUM[i] < b) out.push(ROUTE[i]);
+  out.push(pointAt(b)); return out;
+}
+const CHEV = '<svg class="chev" viewBox="0 0 14 14" aria-hidden="true"><path d="M4 2.5 L9.5 7 L4 11.5" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
+function drawChevrons(a, b){
+  chevLayer.clearLayers();
+  for (let d = a + 16; d < b - 6; d += 36){
+    const p = toXY(pointAt(d)), q = toXY(pointAt(Math.min(b, d + 3)));
+    const ang = Math.atan2(-(q[1]-p[1]), q[0]-p[0]) * 180 / Math.PI;   // screen angle (y grows downward)
+    L.marker(pointAt(d), { interactive:false, keyboard:false,
+      icon: L.divIcon({ className:"", html:`<div style="transform:rotate(${ang.toFixed(0)}deg);width:14px;height:14px">${CHEV}</div>`, iconSize:[14,14], iconAnchor:[7,7] }) }).addTo(chevLayer);
+  }
+}
 // distance from where we are back onto the route (straight line; no line is drawn on the map)
 const roadBack = (me, target) => dist(me, target);
 
-const pinIcon = (i, cls) => L.divIcon({ className:"", html:`<div class="pin ${cls}">${i+1}</div>`, iconSize:[30,30], iconAnchor:[15,15], popupAnchor:[0,-16] });
+const pinIcon = (i, cls) => L.divIcon({ className:"", html:`<div class="pin ${cls}">${cls === "v" ? "✓" : i+1}</div>`, iconSize:[30,30], iconAnchor:[15,15], popupAnchor:[0,-16] });
 const markers = STOPS.map((s,i) => {
   const m = L.marker([s.lat,s.lng], { icon: pinIcon(i, ""), keyboard:true, title: pick(s.title) }).addTo(map);
   m.bindPopup(() => {
@@ -356,20 +403,25 @@ function renderFacChips(){
 }
 
 /* me marker */
-const meIcon = L.divIcon({ className:"", html:'<div class="me" id="me"><div class="arrow"></div><div class="dot"></div></div>', iconSize:[22,22], iconAnchor:[11,11] });
+const meIcon = L.divIcon({ className:"", html:'<div class="me" id="me"><svg class="dir" viewBox="0 0 72 72" aria-hidden="true"><defs><radialGradient id="meBeam" cx="36" cy="36" r="34" gradientUnits="userSpaceOnUse"><stop offset=".25" stop-color="#3B82C4" stop-opacity=".5"/><stop offset="1" stop-color="#3B82C4" stop-opacity="0"/></radialGradient></defs><path d="M36 36 L18 4 A36 36 0 0 1 54 4 Z" fill="url(#meBeam)"/><path d="M36 15 L43.5 27 L36 24 L28.5 27 Z" fill="#3B82C4" stroke="#fff" stroke-width="2" stroke-linejoin="round"/></svg><div class="dot"></div></div>', iconSize:[22,22], iconAnchor:[11,11] });
 let meMarker = null, accCircle = null;
 function ensureMe(ll){
   if (meMarker) return;
   accCircle = L.circle(ll, { radius:10, color:"#3B82C4", weight:1, fillOpacity:.1, interactive:false }).addTo(map);
   meMarker = L.marker(ll, { icon:meIcon, draggable:true, zIndexOffset:1000 }).addTo(map);
-  // drag the blue dot to test without GPS
+  // dragging the blue dot only moves it on the map (preview) — it never counts distance or arrivals,
+  // and real GPS keeps running: the next GPS fix puts the dot back where you really are
   meMarker.on("dragstart", () => { if (S.source === "sim") stopSim(); });
-  meMarker.on("dragend", () => { const p = meMarker.getLatLng(); S.source = "drag"; onPosition(p.lat, p.lng, 5); });
+  meMarker.on("dragend", () => { if (S.follow){ S.follow = false; render(); } toast(w().dragHint); });
 }
 
 /* ---------- position handling ---------- */
-function onPosition(lat, lng, acc){
+function onPosition(lat, lng, acc, gpsHeading){
   const ll = [lat, lng];
+  // direction of travel: the GPS's own heading when moving, otherwise from the last few metres walked
+  if (typeof gpsHeading === "number" && !isNaN(gpsHeading)) S.moveHeading = gpsHeading;
+  else if (S.pos){ const a = toXY([S.pos.lat, S.pos.lng]), b = toXY(ll);
+    if (Math.hypot(b[0]-a[0], b[1]-a[1]) >= 3) S.moveHeading = (Math.atan2(b[0]-a[0], b[1]-a[1]) * 180 / Math.PI + 360) % 360; }
   S.pos = { lat, lng, acc };
   ensureMe(ll);
   meMarker.setLatLng(ll); accCircle.setLatLng(ll).setRadius(Math.max(acc, 3));
@@ -419,7 +471,7 @@ function startGps(){
   if (!window.isSecureContext && !/^(localhost|127\.)/.test(location.hostname) && location.protocol !== "file:") toast(w().needHttps, true);
   S.source = "gps";
   watchId = navigator.geolocation.watchPosition(
-    p => { if (S.source === "gps") onPosition(p.coords.latitude, p.coords.longitude, Math.round(p.coords.accuracy)); },
+    p => { if (S.source === "gps") onPosition(p.coords.latitude, p.coords.longitude, Math.round(p.coords.accuracy), p.coords.speed > .5 ? p.coords.heading : null); },
     err => { toast(err.code === 1 ? w().gpsDenied : w().gpsDenied + (window.isSecureContext ? "" : " · " + w().needHttps), true); },
     { enableHighAccuracy:true, maximumAge:2000, timeout:20000 }
   );
@@ -458,10 +510,14 @@ function onOrient(e){
 }
 function drawHeading(){
   const el = document.getElementById("me"); if (!el) return;
-  el.classList.toggle("has-heading", compassOn && S.heading != null);
-  const a = el.querySelector(".arrow"); if (a && S.heading != null) a.style.transform = `rotate(${S.heading}deg)`;
+  // compass first (where the phone points), otherwise the direction you're walking
+  const h = compassOn && S.heading != null ? S.heading : S.moveHeading;
+  el.classList.toggle("has-heading", h != null);
+  const d = el.querySelector(".dir"); if (d && h != null) d.style.transform = `rotate(${h}deg)`;
 }
-async function toggleCompass(){
+async function toggleCompass(quiet){
+  if (quiet === true && compassOn) return;
+  if (quiet === true && !("DeviceOrientationEvent" in window)) return;
   if (compassOn){
     compassOn = false;
     removeEventListener("deviceorientationabsolute", onOrient); removeEventListener("deviceorientation", onOrient);
@@ -472,11 +528,11 @@ async function toggleCompass(){
     if (typeof DeviceOrientationEvent.requestPermission === "function"){
       if (await DeviceOrientationEvent.requestPermission() !== "granted"){ toast(w().compassNo, true); return; }
     }
-  } catch(_){ toast(w().compassNo, true); return; }
+  } catch(_){ if (quiet !== true) toast(w().compassNo, true); return; }
   compassOn = true;
   if ("ondeviceorientationabsolute" in window) addEventListener("deviceorientationabsolute", onOrient);
   else addEventListener("deviceorientation", onOrient);
-  setTimeout(() => { if (compassOn && S.heading == null) toast(w().compassNo, true); }, 3000);
+  setTimeout(() => { if (compassOn && S.heading == null && quiet !== true) toast(w().compassNo, true); }, 3000);
   render();
 }
 
@@ -518,11 +574,21 @@ $("#nextRow").onclick = () => {
   const c = nextStopIndex(); if (c >= 0) openStop(c);
 };
 $("#bSim").onclick = () => simTimer ? (stopSim(), S.mode === "running" && pauseRun(), render()) : startSim();
-$("#bFollow").onclick = () => { S.follow = !S.follow; if (S.follow && S.pos) map.panTo([S.pos.lat, S.pos.lng]); render(); };
-$("#bCompass").onclick = toggleCompass;
-$("#bLayer").onclick = () => { map.removeLayer(layers[layer]); layer = layer === "map" ? "sat" : "map"; layers[layer].addTo(map); render(); };
+// "My location": snap the dot back to where you really are (also after dragging it away) and follow again
+$("#bFollow").onclick = () => {
+  S.follow = true;
+  if (S.pos && meMarker){ const ll = [S.pos.lat, S.pos.lng]; meMarker.setLatLng(ll); accCircle.setLatLng(ll); map.setView(ll, Math.max(map.getZoom(), 17)); }
+  if (navigator.geolocation && S.source !== "sim"){
+    navigator.geolocation.getCurrentPosition(
+      p => onPosition(p.coords.latitude, p.coords.longitude, Math.round(p.coords.accuracy)),
+      () => { if (!S.pos) toast(w().gpsDenied, true); },
+      { enableHighAccuracy:true, maximumAge:0, timeout:15000 });
+  }
+  render();
+};
 $("#bFac").onclick = () => setFacilities(!facVisible);
-$("#bWhole").onclick = () => { S.follow = false; map.fitBounds(L.latLngBounds(ROUTE), { paddingTopLeft:[20,90], paddingBottomRight: panelPad() }); render(); };
+// street map ⇄ satellite photo
+$("#bLayer").onclick = () => { map.removeLayer(layers[layer]); layer = layer === "map" ? "sat" : "map"; layers[layer].addTo(map); layers[layer].bringToBack(); render(); };
 /* bottom card: drag down to collapse, drag up to expand (tap the handle also toggles) */
 function setMini(on){ panelEl.classList.toggle("mini", on); render(); }
 $("#bHandle").onclick = e => { if (!panelEl._dragged) setMini(!panelEl.classList.contains("mini")); };
@@ -555,7 +621,9 @@ map.on("dragstart", () => { if (S.follow){ S.follow = false; render(); } });
 
 /* ---------- ready overlay ---------- */
 const ready = $("#ready");
-$("#rGo").onclick = () => { ready.hidden = true; goGps(); };
+$("#readyArt").innerHTML = coverArt();
+// one tap asks for everything: location + compass (iOS only allows the compass prompt inside a tap)
+$("#rGo").onclick = () => { ready.hidden = true; goGps(); toggleCompass(true); };
 $("#rSim").onclick = () => { ready.hidden = true; startSim(); };
 $("#rLook").onclick = () => { ready.hidden = true; };
 
@@ -570,29 +638,30 @@ $("#sheetStop").addEventListener("hidden.bs.offcanvas", stopSpeech);
 function openStop(i){
   const s = STOPS[i], v = S.visited.has(s.id);
   const show = () => {
+    const x = w();
     $("#stopBody").innerHTML = `
       <div class="grab"></div>
-      <div class="tw-relative">
-        ${photoHTML(s, "stop-photo")}
-        ${v ? `<svg class="stamp" width="80" height="80" viewBox="0 0 86 86" aria-label="${esc(w().done)}"><circle cx="43" cy="43" r="38" fill="#FFFDF8" fill-opacity=".9" stroke="#2F5D46" stroke-width="2.5" stroke-dasharray="3 3"/><circle cx="43" cy="43" r="30" stroke="#2F5D46" stroke-width="1.5" fill="none"/><path d="M31 44l8 8 17-18" stroke="#2F5D46" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" fill="none"/></svg>` : ""}
+      <div class="tw-flex tw-justify-between tw-items-center">
+        <button type="button" class="mapbtn" style="box-shadow:none" data-bs-dismiss="offcanvas">${icon("back", 16)}<span>${esc(x.toMap)}</span></button>
+        <span class="t-small">${esc(x.stopN(i+1))} · ${esc(fmtDist(s.tourAlong))}</span>
       </div>
-      <div class="tw-flex tw-flex-wrap tw-items-center tw-gap-2 tw-mt-4 tw-mb-1">
-        <span class="chip pink">${esc(w().stopN(i+1))}</span>
-        <span class="t-small">${esc(pick(s.kicker))} · ${esc(fmtDist(s.tourAlong))}</span>
+      <div class="tw-relative tw-mx-2 tw-mt-6 tw-mb-2 tilt-r">
+        <span class="tape" style="top:-12px;left:16px;transform:rotate(-8deg)"></span>
+        <span class="tape g" style="top:-10px;right:12px;width:70px;transform:rotate(7deg)"></span>
+        <div class="polaroid">${photoHTML(s, "stop-photo")}<div class="cap">${esc(pick(s.title).split(" · ")[0])}</div></div>
+        ${v ? `<div class="bigstamp pop" style="position:absolute;right:-8px;bottom:-26px;width:92px;height:92px;color:var(--pink);background:rgba(255,252,245,.88);transform:rotate(-14deg);z-index:5"><span style="font:700 1.15rem/1 var(--f-body)">${esc(x.arrived2)}</span><small>${esc(x.stampN(i+1))}</small></div>` : ""}
       </div>
-      <h2 class="t-h1 tw-mb-2" id="stopTitle">${esc(pick(s.title))}</h2>
-      <p class="t-body tw-mb-3">${esc(pick(s.text))}</p>
-      <div class="tw-flex tw-flex-wrap tw-gap-2 tw-mb-4">${(pick(s.facts)||[]).map(f => `<span class="chip">${esc(f)}</span>`).join("")}</div>
+      <div class="kicker tw-mt-6">${esc(pick(s.kicker))}</div>
+      <h2 class="t-h1 tw-mb-3" id="stopTitle" style="color:var(--forest-dark)">${esc(pick(s.title))}</h2>
       <div class="audio tw-mb-3" id="audio">
         <button type="button" class="play" id="bPlay" aria-label="${esc(t("listen"))}">${icon("play", 20)}</button>
         <div class="tw-flex-1"><div class="t-h3" id="playLbl">${esc(t("listen"))}</div><div class="wave">${"<i></i>".repeat(28)}</div></div>
         <span class="t-small" style="color:var(--pink)">${LANGS.find(l => l[0] === lang)[1]}</span>
       </div>
-      ${s.photoTip ? `<div class="tw-flex tw-gap-2.5 tw-items-start tw-mb-4"><span style="color:var(--forest)">${icon("camera", 20)}</span><span class="t-small"><b>${esc(t("photoTip"))}:</b> ${esc(pick(s.photoTip))}</span></div>` : ""}
-      <div class="tw-flex tw-gap-2.5">
-        <button type="button" class="btn btn-card tw-flex-1" id="xGo">${esc(w().goHere)}</button>
-        <button type="button" class="btn btn-forest tw-flex-1" data-bs-dismiss="offcanvas">${esc(S.mode === "running" ? t("keepWalking") + " →" : t("close"))}</button>
-      </div>`;
+      <p class="t-body tw-mb-3">${esc(pick(s.text))}</p>
+      <div class="tw-flex tw-flex-wrap tw-gap-2 tw-mb-4">${(pick(s.facts)||[]).map(f => `<span class="chip">${esc(f)}</span>`).join("")}</div>
+      ${s.photoTip ? `<div class="note tw-mx-1 tw-mb-5" style="transform:rotate(-1deg)">📷 ${esc(pick(s.photoTip))}</div>` : ""}
+      <button type="button" class="btn btn-card tw-w-full" id="xGo">${esc(x.goHere)}</button>`;
     $("#bPlay").onclick = () => speaking ? stopSpeech() : speak(s);
     $("#xGo").onclick = () => { stopOC.hide(); S.follow = false; map.setView([s.lat,s.lng], 18); markers[i].openPopup(); render(); };
     stopOC.show();
@@ -650,25 +719,31 @@ function confirmFinish(){
 $("#cYes").onclick = () => { confirmM.hide(); finishRun(); };
 
 function showSummary(){
-  const n = S.visited.size, all = n === STOPS.length;
+  const n = S.visited.size, all = n === STOPS.length, x = w();
   $("#sumScript").textContent = all ? t("sumScript") : t("sumScriptPart");
   $("#sumTitle").innerHTML = t(all ? "sumAll" : "sumPart", { n });
-  const COLORS = ["#8AA37B","#2F5D46","#C24F7C","#E58FB0","#7A8A8E","#1E3F2F"], ROT = [-8,5,-3,9,-6,4];
+  const ROT = [-8,6,4,-5,7,-3], COL = ["var(--forest)","var(--pink)"];
   $("#stamps").innerHTML = STOPS.map((s,i) => {
-    const v = S.visited.has(s.id), c = v ? COLORS[i % COLORS.length] : "#CFC6B5";
-    return `<div><svg width="68" height="68" viewBox="0 0 72 72" style="transform:rotate(${v ? ROT[i] : 0}deg)" aria-hidden="true">
-      <circle cx="36" cy="36" r="32" fill="${c}" fill-opacity="${v ? .12 : 0}" stroke="${c}" stroke-width="2" stroke-dasharray="3 3"/>
-      <circle cx="36" cy="36" r="25" fill="none" stroke="${c}" stroke-width="1.5"/>
-      <text x="36" y="45" text-anchor="middle" font-family="FC Mee Sakul Serif, Trirong, serif" font-weight="700" font-size="24" fill="${c}">${v ? i+1 : "·"}</text></svg>
-      <div class="t-small stamp-lbl" style="color:${v ? "var(--ink)" : "var(--slate)"}">${esc(pick(s.title).split(" · ")[0])}</div></div>`;
+    const v = S.visited.has(s.id);
+    return `<div class="bigstamp ${v ? "pop" : "off"}" style="color:${COL[i % 2]};transform:rotate(${v ? ROT[i % 6] : 0}deg);animation-delay:${(i*.18).toFixed(2)}s">
+      ${stampArt(s)}<small>${i+1} · ${esc(pick(s.title).split(" · ")[0])}</small></div>`;
   }).join("");
-  const box = (v,l) => `<div class="tw-rounded-[18px] tw-py-3.5" style="background:var(--moss-soft)"><div class="t-num" style="color:var(--forest-dark)">${esc(v)}</div><div class="t-caps" style="color:var(--forest)">${esc(l)}</div></div>`;
-  $("#sumStats").innerHTML = box(fmtDist(S.walked), w().dist) + box(fmtTime(S.elapsed), w().time) + box(String(Math.round(S.walked/1000*CONFIG.kcalPerKm)), w().kcal) + box(`${n}/${STOPS.length}`, w().visited);
+  const box = (v,l,mid) => `<div ${mid ? 'style="border-left:1px dashed var(--line);border-right:1px dashed var(--line)"' : ""}><div class="t-num" style="color:var(--forest-dark)">${esc(v)}</div><div class="t-small">${esc(l)}</div></div>`;
+  $("#sumStats").innerHTML = box(fmtDist(S.walked), x.dist) + box(fmtTime(S.elapsed), x.time, true) + box(String(Math.round(S.walked/1000*CONFIG.kcalPerKm)), x.kcal);
+  $("#bShare").innerHTML = btnIco("share", x.share);
+  $("#bHome").textContent = x.home;
   $("#summary").hidden = false;
 }
+$("#bShare").onclick = async () => {
+  const text = w().shareText(S.visited.size, STOPS.length, fmtDist(S.walked));
+  const url = location.href.split(/[?#]/)[0].replace(/walk\.html$/, "");
+  try { if (navigator.share) { await navigator.share({ title: pick(SITE.title), text, url }); return; } } catch(_){ return; }
+  try { await navigator.clipboard.writeText(text + " " + url); toast(w().copied); } catch(_){}
+};
 $("#bAgain").onclick = () => {
+  // walk again → straight back to the map and start walking (location was already allowed)
   $("#summary").hidden = true; S.mode = "idle"; S.walked = 0; S.elapsed = 0; S.visited = new Set(); store.set("visited", []);
-  ready.hidden = false; render();
+  ready.hidden = true; goGps();
 };
 
 /* ---------- toast ---------- */
@@ -691,88 +766,99 @@ function progressAlong(){
 const tourPct = prog => Math.round(Math.max(0, Math.min(1, (prog - APPROACH_LEN) / TOUR_LEN)) * 100);
 let farAway = false;   // far from Gate 1 → the next-stop card opens Google Maps instead
 const btnIco = (name, label) => `${icon(name, 18)}<span>${esc(label)}</span>`;
+let nowKey = "", thumbKey = "";
 function render(){
   const x = w();
   document.title = pick(SITE.title);
-  $("#title").textContent = pick(SITE.title);
+  const cur = nextStopIndex(), active = S.mode === "running" || S.mode === "paused";
 
-  // controls
-  const ctl = [["#bFollow","locate",x.follow,S.follow],["#bCompass","compass",x.compass,compassOn],["#bLayer","layers",layer === "map" ? x.sat : x.map,layer === "sat"],["#bFac","wc",t("facLayer"),facVisible],["#bWhole","route",x.whole,false]];
-  ctl.forEach(([id,ic,label,on]) => { const b = $(id); b.innerHTML = icon(ic, 22); b.title = label; b.setAttribute("aria-label", label); b.classList.toggle("on", !!on); b.setAttribute("aria-pressed", !!on); });
+  // map buttons — just two, with words
+  [["#bFollow","locate",x.myPos,S.follow],["#bFac","wc",x.facBtn,facVisible],["#bLayer","layers",layer === "map" ? x.sat : x.map,false]].forEach(([id,ic,label,on]) => {
+    const b = $(id); b.innerHTML = icon(ic, 18) + `<span>${esc(label)}</span>`; b.classList.toggle("on", !!on); b.setAttribute("aria-pressed", !!on); });
   $("#bSim").innerHTML = icon(simTimer ? "stop" : "sim", 14) + `<span>${esc(simTimer ? x.simOn : x.sim)}</span>`;
   $("#bSim").classList.toggle("on", !!simTimer);
   if (facVisible) renderFacChips();
 
-  // actions
-  $("#bStart").innerHTML = S.mode === "running" ? btnIco("pause", x.pause) : S.mode === "paused" ? btnIco("play", x.resume) : btnIco("play", x.start);
-  $("#bList").innerHTML = btnIco("list", x.stops);
-  $("#bEnd").innerHTML = btnIco("flag", x.finish); $("#bEnd").disabled = !(S.mode === "running" || S.mode === "paused");
+  // top bar: step 1 = walk to the palace · step 2 = stamp row
+  const n = S.visited.size;
+  $("#topInfo").innerHTML = cur === 0
+    ? `<span class="tb-step">${esc(x.step1)}</span>`
+    : `<div class="stp-row tw-flex-1">${STOPS.map((s,i) => { const v = S.visited.has(s.id);
+        return `<span class="stp ${v ? "done" : i === cur ? "next" : "todo"}">${v ? "✓" : i+1}</span>`; }).join('<span class="dash"></span>')}</div>
+       <span class="tb-count">${esc(x.stampsOf(n, STOPS.length))}</span>`;
 
-  // stats
-  $("#lDist").textContent = x.dist; $("#lTime").textContent = x.time; $("#lKcal").textContent = x.kcal; $("#lVis").textContent = x.visited;
-  $("#sDist").textContent = fmtDist(S.walked);
-  $("#sTime").textContent = fmtTime(elapsed());
-  $("#sKcal").textContent = Math.round(S.walked/1000*CONFIG.kcalPerKm);
-  $("#sVis").textContent = `${S.visited.size}/${STOPS.length}`;
+  // buttons
+  $("#bStart").hidden = S.mode === "running";
+  $("#bStart").innerHTML = S.mode === "paused" ? btnIco("play", x.resume) : btnIco("play", x.start);
+  $("#bList").innerHTML = btnIco("list", x.seeAll(STOPS.length));
+  $("#bEnd").hidden = !active;
+  $("#bEnd").innerHTML = btnIco("flag", x.endWalk);
+  $("#statsLine").textContent = active ? x.walkedLine(fmtDist(S.walked), fmtTime(elapsed()), Math.round(S.walked/1000*CONFIG.kcalPerKm)) : "";
 
   // markers
-  const cur = nextStopIndex();
   markers.forEach((m,i) => {
     const cls = S.visited.has(STOPS[i].id) ? "v" : i === cur ? "cur" : "";
     if (m._cls !== cls){ m._cls = cls; m.setIcon(pinIcon(i, cls)); }
   });
 
-  // progress
-  const prog = progressAlong(), pct = tourPct(prog);
-  $("#prog").style.width = pct + "%"; $("#pPct").textContent = pct + "%";
-  $("#pStart").textContent = pick(STOPS[0].title).split(" · ")[0]; $("#pEnd").textContent = pick(STOPS[STOPS.length-1].title).split(" · ").pop();
+  // progress: step 1 = share of the way to the palace, step 2 = share of the tour
+  const prog = progressAlong();
+  const pct = cur === 0 ? Math.round(Math.max(0, Math.min(1, prog / APPROACH_LEN)) * 100) : tourPct(prog);
+  $("#prog").style.width = pct + "%";
   walkedLine.setLatLngs(prog > 0 ? routeUpTo(prog) : []);
 
-  // next stop
-  const sub = $("#nSub"); sub.classList.remove("warn");
+  // the leg to walk now: pink line + arrows, from where you are to the next stop
+  const legEnd = cur === -1 ? 0 : STOPS[cur].along;
+  const legStart = cur === -1 ? 0 : Math.min(legEnd, Math.max(prog, cur > 0 ? STOPS[cur-1].along : 0));
+  const key = cur + ":" + Math.round(legStart / 4);
+  if (key !== nowKey){ nowKey = key; nowLine.setLatLngs(routeBetween(legStart, legEnd)); drawChevrons(legStart, legEnd); }
+
+  // next-stop card
+  const big = $("#nBig"), sub = $("#nSub"), note = $("#nNote");
+  sub.classList.remove("warn"); big.textContent = "";
   farAway = false;
+  const tk = cur + lang;
+  if (tk !== thumbKey){
+    thumbKey = tk;
+    $("#nThumb").innerHTML = cur > 0 ? `<div class="nthumb"><div class="polaroid sm">${photoHTML(STOPS[cur])}</div></div>`
+      : `<div class="nthumb icon">${icon(cur === -1 ? "check" : "pin", 28)}</div>`;
+  }
+  // distance left = back onto the route, then along it
+  const left = target => {
+    const sn = S.snap, onRoute = sn.off <= CONFIG.offRouteMeters;
+    const back = onRoute ? 0 : roadBack([S.pos.lat,S.pos.lng], sn.ll);
+    const d = target >= sn.along ? back + target - sn.along : back + dist(sn.ll, [STOPS[cur].lat, STOPS[cur].lng]);
+    big.textContent = x.left(fmtDist(d));
+    let txt = x.about(fmtEta(d)) + " · " + x.accuracy(S.pos.acc);
+    if (!onRoute){ txt = x.offRoute(fmtDist(back)) + " · " + txt; sub.classList.add("warn"); }
+    sub.textContent = txt;
+  };
   if (cur === -1){
-    $("#nNum").innerHTML = icon("check", 28); $("#nKick").textContent = x.visited + " " + STOPS.length + "/" + STOPS.length;
-    $("#nTitle").textContent = x.allDone; sub.textContent = "";
+    $("#nKick").textContent = x.stampsOf(STOPS.length, STOPS.length);
+    $("#nTitle").textContent = x.allDone; sub.textContent = ""; note.textContent = "";
   } else if (cur === 0){
     // step 1: just get to the palace — navigation only, no stop yet
-    $("#nNum").innerHTML = icon("pin", 28);
-    $("#nKick").textContent = t("stepApproach");
+    $("#nKick").textContent = x.followPink;
     $("#nTitle").textContent = t("goToPalace");
+    note.textContent = ACTIVITIES.length ? x.golfNote : "";
     if (!S.pos){
       sub.textContent = (S.mode === "running" && S.source === "gps") ? x.locating : t("approachIdle", { d: fmtDist(APPROACH_LEN) });
     } else {
-      const sn = S.snap, onRoute = sn.off <= CONFIG.offRouteMeters, me = [S.pos.lat,S.pos.lng];
-      const toGate = dist(me, [ENTRY.lat, ENTRY.lng]);
-      if (!onRoute && toGate > CONFIG.farFromStart){
+      const me = [S.pos.lat,S.pos.lng];
+      if (S.snap.off > CONFIG.offRouteMeters && dist(me, [ENTRY.lat, ENTRY.lng]) > CONFIG.farFromStart){
         farAway = true;
-        const back = roadBack(me, [ENTRY.lat, ENTRY.lng]);
-        sub.textContent = t("farAway", { d: fmtDist(back) }); sub.classList.add("warn");
-      } else {
-        const back = onRoute ? 0 : roadBack(me, sn.ll);
-        const d = back + APPROACH_LEN - sn.along;          // back to the route, then along it
-        let txt = x.nextDist(fmtDist(d), fmtEta(d)) + " · " + x.accuracy(S.pos.acc);
-        if (!onRoute){ txt = x.offRoute(fmtDist(back)) + " · " + txt; sub.classList.add("warn"); }
-        sub.textContent = txt;
-      }
+        sub.textContent = t("farAway", { d: fmtDist(roadBack(me, [ENTRY.lat, ENTRY.lng])) }); sub.classList.add("warn");
+      } else left(APPROACH_LEN);
     }
   } else {
     const s = STOPS[cur];
-    $("#nNum").textContent = cur + 1;
     $("#nKick").textContent = x.nextOf(cur + 1, STOPS.length);
     $("#nTitle").textContent = pick(s.title);
-    if (!S.pos){
-      sub.textContent = (S.mode === "running" && S.source === "gps") ? x.locating : x.idle;
-    } else {
-      const sn = S.snap, onRoute = sn.off <= CONFIG.offRouteMeters;
-      const back = onRoute ? 0 : roadBack([S.pos.lat,S.pos.lng], sn.ll);
-      // back to the route, then along the route
-      const d = s.along >= sn.along ? back + s.along - sn.along : back + dist(sn.ll, [s.lat,s.lng]);
-      let txt = x.nextDist(fmtDist(d), fmtEta(d)) + " · " + x.accuracy(S.pos.acc);
-      if (!onRoute){ txt = x.offRoute(fmtDist(back)) + " · " + txt; sub.classList.add("warn"); }
-      sub.textContent = txt;
-    }
+    note.textContent = x.tourNote;
+    if (!S.pos) sub.textContent = (S.mode === "running" && S.source === "gps") ? x.locating : x.idle;
+    else left(s.along);
   }
+  note.hidden = !note.textContent;
   document.documentElement.style.setProperty("--panel-h", (innerWidth >= 900 ? 0 : panelEl.offsetHeight) + "px");
   drawHeading();
 }
@@ -793,7 +879,13 @@ if (qs.has("stop")) {
   S.follow = false; setFacilities(true);
   map.fitBounds(L.latLngBounds(FACILITIES.map(f => [f.lat,f.lng]).concat(ROUTE)), { paddingTopLeft:[20,140], paddingBottomRight: panelPad() });
 } else {
+  // location already allowed before → skip the Ready screen and go straight to walking
   ready.hidden = false;
+  if (navigator.permissions && navigator.geolocation) {
+    navigator.permissions.query({ name: "geolocation" })
+      .then(p => { if (p.state === "granted" && !ready.hidden) { ready.hidden = true; goGps(); toggleCompass(true); } })
+      .catch(() => {});
+  }
 }
 addEventListener("resize", render);
 })();

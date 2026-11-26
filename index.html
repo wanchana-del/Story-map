@@ -26,40 +26,25 @@
 <main>
   <!-- ============ Hero ============ -->
   <section class="wrap wrap-wide tw-pt-2 tw-pb-10">
-    <div class="tw-grid lg:tw-grid-cols-2 tw-gap-6 lg:tw-gap-12 tw-items-center">
-      <div class="grain tw-relative tw-rounded-[28px] tw-overflow-hidden lg:tw-order-2" style="background:var(--paper-deep)">
-        <svg viewBox="0 0 350 300" class="tw-block tw-w-full tw-h-auto" role="img" aria-label="ภาพวาดพระตำหนักเทาในสวน">
-          <rect width="350" height="300" fill="#EDE4D3"/>
-          <circle cx="262" cy="86" r="44" fill="#FCEAF0"/><circle cx="262" cy="86" r="26" fill="#E58FB0" opacity=".85"/>
-          <path d="M0 196 C60 160 120 182 180 168 C240 154 300 178 350 160 V300 H0Z" fill="#8AA37B"/>
-          <g fill="#1E3F2F"><circle cx="48" cy="170" r="34"/><circle cx="86" cy="156" r="26"/><circle cx="20" cy="150" r="22"/><rect x="44" y="190" width="7" height="30"/></g>
-          <g fill="#2F5D46"><circle cx="304" cy="168" r="28"/><circle cx="332" cy="150" r="22"/><rect x="301" y="186" width="6" height="26"/></g>
-          <g fill="#E58FB0"><circle cx="70" cy="146" r="3"/><circle cx="34" cy="160" r="2.5"/><circle cx="58" cy="182" r="3"/><circle cx="318" cy="156" r="2.5"/><circle cx="296" cy="172" r="3"/></g>
-          <rect x="128" y="166" width="104" height="54" fill="#F6F1E7"/>
-          <path d="M116 168 L180 124 L244 168 Z" fill="#7A8A8E"/><path d="M166 124 L180 112 L194 124 Z" fill="#7A8A8E"/>
-          <g fill="#5B6660"><rect x="142" y="180" width="14" height="20" rx="2"/><rect x="173" y="180" width="14" height="20" rx="2"/><rect x="204" y="180" width="14" height="20" rx="2"/></g>
-          <rect x="170" y="204" width="20" height="16" fill="#C24F7C"/>
-          <path d="M0 232 C80 206 150 228 220 214 C280 204 320 222 350 214 V300 H0Z" fill="#2F5D46"/>
-          <path d="M18 290 C80 272 140 286 160 262 C172 248 176 238 180 224" stroke="#FCEAF0" stroke-width="3" stroke-dasharray="2 9" stroke-linecap="round" fill="none"/>
-          <circle cx="18" cy="290" r="6" fill="#FCEAF0"/><circle cx="18" cy="290" r="3" fill="#C24F7C"/>
-        </svg>
-        <span class="chip blossom tw-absolute tw-top-3.5 tw-left-3.5" style="z-index:3" data-i18n="heroChip"></span>
+    <div class="tw-grid lg:tw-grid-cols-2 tw-gap-8 lg:tw-gap-14 tw-items-center">
+      <!-- ปกสมุด: รูปโพลารอยด์ลายเส้นพระตำหนัก -->
+      <div class="lg:tw-order-2 tw-relative tw-mx-3 tw-mt-4 tilt-l">
+        <span class="tape" style="top:-12px;left:50%;margin-left:-46px;transform:rotate(3deg)"></span>
+        <div class="polaroid"><div id="coverArt" style="background:#FBF6EC" class="tw-px-2 tw-pt-2"></div><div class="cap" data-i18n="coverCap"></div></div>
       </div>
 
       <div class="lg:tw-order-1">
-        <p class="t-script tw-mb-1" data-i18n="heroScript"></p>
-        <h1 class="t-display tw-mb-3" data-i18n-html="heroTitle"></h1>
-        <p class="t-body tw-mb-5" data-i18n="heroDesc"></p>
-        <div class="tw-flex tw-flex-wrap tw-gap-2.5 tw-mb-5">
-          <a class="btn btn-forest" href="walk.html" data-keep-lang><span data-i18n="ctaStart"></span></a>
-          <a class="btn btn-card" href="#stops"><span data-i18n="ctaStops"></span></a>
+        <p class="hand tw-mb-0" style="color:var(--pink);font-size:1.25rem;transform:rotate(-2deg);transform-origin:left" data-i18n="heroScript"></p>
+        <h1 class="t-display tw-mb-0" style="color:var(--forest-dark)" data-i18n-html="heroTitle"></h1>
+        <svg width="200" height="14" viewBox="0 0 190 14" aria-hidden="true" class="tw-block"><path d="M3 9 C 40 3, 70 13, 105 7 S 165 4, 187 8" fill="none" stroke="#E58FB0" stroke-width="3.5" stroke-linecap="round" filter="url(#bk-rough)"/></svg>
+        <p class="t-body tw-mt-3 tw-mb-4" data-i18n="heroDesc"></p>
+        <div class="tw-flex tw-flex-wrap tw-gap-2 tw-mb-5">
+          <span class="chip"><span data-icon="pin" data-size="15"></span><b id="mStops"></b> <span data-i18n="statStops"></span></span>
+          <span class="chip"><b id="mKm"></b> <span data-i18n="statKm"></span></span>
+          <span class="chip pink"><span data-icon="clock" data-size="15"></span><b id="mMin"></b> <span data-i18n="statMin"></span></span>
         </div>
-        <div class="card-soft tw-grid tw-grid-cols-4 tw-py-4 tw-px-2 tw-text-center">
-          <div><div class="t-num" style="color:var(--forest)" id="mKm"></div><div class="t-caps" style="color:var(--ink-soft)" data-i18n="statKm"></div></div>
-          <div><div class="t-num" style="color:var(--forest)" id="mMin"></div><div class="t-caps" style="color:var(--ink-soft)" data-i18n="statMin"></div></div>
-          <div><div class="t-num" style="color:var(--forest)" id="mStops"></div><div class="t-caps" style="color:var(--ink-soft)" data-i18n="statStops"></div></div>
-          <div><div class="t-num" style="color:var(--forest)" id="mKcal"></div><div class="t-caps" style="color:var(--ink-soft)" data-i18n="statKcal"></div></div>
-        </div>
+        <a class="btn btn-forest tw-w-full sm:tw-w-auto sm:tw-px-10" href="walk.html" data-keep-lang><span data-i18n="ctaStart"></span></a>
+        <div class="tw-mt-2"><a class="btn-text tw-inline-block" href="#stops" data-i18n="ctaStops"></a></div>
       </div>
     </div>
 
@@ -175,8 +160,8 @@
     $("#mKm").textContent = (TOTAL/1000).toFixed(2);
     $("#mMin").textContent = "~" + Math.round(TOTAL / (CONFIG.walkSpeedKmh*1000/60));
     $("#mStops").textContent = STOPS.length;
-    $("#mKcal").textContent = "~" + Math.round(TOTAL/1000*CONFIG.kcalPerKm);
   }
+  $("#coverArt").innerHTML = coverArt();
   onLang(() => { document.title = pick(SITE.title); renderTimeline(); });
   renderStats();
   applyI18n();
