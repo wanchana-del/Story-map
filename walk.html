@@ -150,6 +150,7 @@
 </div>
 
 <div class="mapbtns" aria-label="Map controls">
+  <button type="button" class="mapbtn" id="bRotate"></button>
   <button type="button" class="mapbtn" id="bFollow"></button>
   <button type="button" class="mapbtn" id="bFac"></button>
   <button type="button" class="mapbtn" id="bLayer"></button>
@@ -258,6 +259,7 @@
 </div>
 
 <script src="https://cdnjs.cloudflare.com/ajax/libs/leaflet/1.9.4/leaflet.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/leaflet-rotate@0.2.8/dist/leaflet-rotate.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="data.js"></script>
 <script src="i18n.js"></script>
@@ -277,7 +279,8 @@ const W = {
     myPos:"ตำแหน่งฉัน", facBtn:"ห้องน้ำ · ที่พัก", step1:"ขั้น 1 จาก 2 · เดินไปที่วัง", stampsOf:(n,t)=>`ตรา ${n}/${t}`, seeAll:n=>`ดูทั้ง ${n} จุด`, endWalk:"จบการเดิน",
     walkedLine:(d,tm,k)=>`เดินแล้ว ${d} · ${tm} · ${k} กิโลแคล`, followPink:"เดินตามเส้นสีชมพู", left:d=>`อีก ${d}`, about:e=>`ราว ${e}`,
     golfNote:"ระหว่างทางผ่านสนามกอล์ฟ ⛳ แวะตีได้นะ!", tourNote:"เดินไปถึงจุดไหน เรื่องเล่าจะเปิดขึ้นเอง", toMap:"แผนที่", arrived2:"ถึงแล้ว!", stampN:n=>`ตราที่ ${n}`,
-    share:"แชร์ผลการเดิน", home:"กลับหน้าแรก", shareText:(n,t,d)=>`วันนี้เดินชมสวนบ้านแก้ว ได้ตรา ${n}/${t} ดวง · ${d}`, copied:"คัดลอกข้อความแล้ว" },
+    share:"แชร์ผลการเดิน", home:"กลับหน้าแรก", shareText:(n,t,d)=>`วันนี้เดินชมสวนบ้านแก้ว ได้ตรา ${n}/${t} ดวง · ${d}`, copied:"คัดลอกข้อความแล้ว",
+    rotateMap:"หมุนตามทิศ", noHeadingYet:"ยังไม่รู้ทิศ — เดินไปสักนิด แผนที่จะหมุนตาม" },
   en: { start:"Start", pause:"Pause", resume:"Resume", finish:"Finish", stops:"Stops", sim:"Simulate", simOn:"Stop sim",
     follow:"Follow me", compass:"Compass", sat:"Satellite", map:"Map", whole:"Whole route",
     idle:"Tap Start when you're at Gate 1", locating:"Finding your GPS position…", toStart:d=>`${d} to the start`, nextDist:(d,e)=>`${d} · about ${e}`,
@@ -288,7 +291,8 @@ const W = {
     myPos:"My location", facBtn:"Toilets · rest", step1:"Step 1 of 2 · walk to the palace", stampsOf:(n,t)=>`Stamps ${n}/${t}`, seeAll:n=>`All ${n} stops`, endWalk:"Finish",
     walkedLine:(d,tm,k)=>`Walked ${d} · ${tm} · ${k} kcal`, followPink:"Follow the pink line", left:d=>`${d} to go`, about:e=>`about ${e}`,
     golfNote:"You'll pass the golf course ⛳ — stop for a swing!", tourNote:"Each stop's story opens by itself when you get there", toMap:"Map", arrived2:"Arrived!", stampN:n=>`Stamp ${n}`,
-    share:"Share my walk", home:"Back to home", shareText:(n,t,d)=>`I walked Suan Ban Kaew today — ${n}/${t} stamps · ${d}`, copied:"Text copied" },
+    share:"Share my walk", home:"Back to home", shareText:(n,t,d)=>`I walked Suan Ban Kaew today — ${n}/${t} stamps · ${d}`, copied:"Text copied",
+    rotateMap:"Heading up", noHeadingYet:"No direction yet — walk a few steps and the map will turn" },
   zh: { start:"开始", pause:"暂停", resume:"继续", finish:"结束", stops:"站点", sim:"模拟步行", simOn:"停止模拟",
     follow:"跟随位置", compass:"指南针", sat:"卫星图", map:"地图", whole:"全程",
     idle:"到达1号门后点击开始", locating:"正在获取 GPS 位置…", toStart:d=>`距起点 ${d}`, nextDist:(d,e)=>`还有 ${d} · 约 ${e}`,
@@ -299,7 +303,8 @@ const W = {
     myPos:"我的位置", facBtn:"洗手间 · 休息", step1:"第 1 步 / 共 2 步 · 走到宫殿", stampsOf:(n,t)=>`印章 ${n}/${t}`, seeAll:n=>`全部 ${n} 站`, endWalk:"结束",
     walkedLine:(d,tm,k)=>`已走 ${d} · ${tm} · ${k} 千卡`, followPink:"沿粉色线走", left:d=>`还有 ${d}`, about:e=>`约 ${e}`,
     golfNote:"途中经过高尔夫球场 ⛳ 可以去打几杆！", tourNote:"走到每一站，故事会自动打开", toMap:"地图", arrived2:"到啦！", stampN:n=>`第 ${n} 枚印章`,
-    share:"分享步行记录", home:"返回首页", shareText:(n,t,d)=>`今天漫步班盖花园，集到 ${n}/${t} 枚印章 · ${d}`, copied:"已复制文字" }
+    share:"分享步行记录", home:"返回首页", shareText:(n,t,d)=>`今天漫步班盖花园，集到 ${n}/${t} 枚印章 · ${d}`, copied:"已复制文字",
+    rotateMap:"随方向旋转", noHeadingYet:"还不知道方向——走几步，地图就会跟着转" }
 };
 const w = () => W[lang];
 
@@ -311,7 +316,7 @@ const S = {
   mode: "idle",          // idle | running | paused | finished
   source: null,          // gps | sim | drag
   pos: null, snap: null, walked: 0, elapsed: 0, runSince: 0, lastCounted: null,
-  visited: new Set(store.get("visited", [])), heading: null, moveHeading: null, follow: true
+  visited: new Set(store.get("visited", [])), heading: null, moveHeading: null, follow: true, headingUp: false
 };
 
 /* ---------- map ---------- */
@@ -321,7 +326,9 @@ const PEEK = 96;
 const miniOffset = () => Math.max(0, panelEl.offsetHeight - PEEK);
 function placePanel(){ if (!panelEl.classList.contains("dragging")) panelEl.style.transform = panelEl.classList.contains("mini") ? `translateY(${miniOffset()}px)` : ""; }
 const panelPad = () => [0, panelEl.offsetHeight + 10];
-const map = L.map("map", { zoomControl:false, attributionControl:true });
+// rotate:true comes from leaflet-rotate — lets the map turn so the way you face is up
+const map = L.map("map", { zoomControl:false, attributionControl:true, rotate:true, bearing:0, rotateControl:false, touchRotate:false, shiftKeyRotate:false });
+const bearingNow = () => (map.getBearing ? map.getBearing() : 0);
 map.fitBounds(L.latLngBounds(ROUTE), { paddingTopLeft:[20, 90], paddingBottomRight: panelPad() });
 const layers = {
   map: L.tileLayer("https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png", { maxZoom:19, attribution:"© OpenStreetMap" }),
@@ -341,14 +348,16 @@ function routeBetween(a, b){
   for (let i=0;i<ROUTE.length;i++) if (CUM[i] > a && CUM[i] < b) out.push(ROUTE[i]);
   out.push(pointAt(b)); return out;
 }
+map.on("rotate", () => chevLayer.eachLayer(m => { const e = m.getElement(); if (e && e.firstChild) e.firstChild.style.transform = `rotate(${(m._ang + bearingNow()).toFixed(0)}deg)`; }));
 const CHEV = '<svg class="chev" viewBox="0 0 14 14" aria-hidden="true"><path d="M4 2.5 L9.5 7 L4 11.5" fill="none" stroke="#fff" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"/></svg>';
 function drawChevrons(a, b){
   chevLayer.clearLayers();
   for (let d = a + 16; d < b - 6; d += 36){
     const p = toXY(pointAt(d)), q = toXY(pointAt(Math.min(b, d + 3)));
     const ang = Math.atan2(-(q[1]-p[1]), q[0]-p[0]) * 180 / Math.PI;   // screen angle (y grows downward)
-    L.marker(pointAt(d), { interactive:false, keyboard:false,
-      icon: L.divIcon({ className:"", html:`<div style="transform:rotate(${ang.toFixed(0)}deg);width:14px;height:14px">${CHEV}</div>`, iconSize:[14,14], iconAnchor:[7,7] }) }).addTo(chevLayer);
+    const m = L.marker(pointAt(d), { interactive:false, keyboard:false,
+      icon: L.divIcon({ className:"", html:`<div style="transform:rotate(${(ang + bearingNow()).toFixed(0)}deg);width:14px;height:14px">${CHEV}</div>`, iconSize:[14,14], iconAnchor:[7,7] }) }).addTo(chevLayer);
+    m._ang = ang;
   }
 }
 // distance from where we are back onto the route (straight line; no line is drawn on the map)
@@ -522,19 +531,24 @@ function onOrient(e){
   onOrient.t = now; drawHeading();
 }
 function drawHeading(){
-  const el = document.getElementById("me"); if (!el) return;
   // compass first (where the phone points), otherwise the direction you're walking
   const h = compassOn && S.heading != null ? S.heading : S.moveHeading;
+  // turn the short way round (359° → 1° is +2°, not -358°) and skip changes too small to notice
+  if (h != null){
+    if (drawHeading.at == null) drawHeading.at = h;
+    else { const cur = ((drawHeading.at % 360) + 360) % 360, diff = ((h - cur + 540) % 360) - 180; if (Math.abs(diff) >= 4) drawHeading.at += diff; }
+  }
+  // heading-up mode: turn the map so the way you face points up the screen
+  const want = S.headingUp && h != null ? ((-drawHeading.at % 360) + 360) % 360 : 0;
+  if (Math.abs((((want - bearingNow()) % 360) + 540) % 360 - 180) >= 1) map.setBearing(want);
+  const el = document.getElementById("me"); if (!el) return;
   el.classList.toggle("has-heading", h != null);
   const d = el.querySelector(".dir"); if (!d || h == null) return;
-  // turn the short way round (359° → 1° is +2°, not -358°) and skip changes too small to notice
-  if (drawHeading.at == null) drawHeading.at = h;
-  else {
-    const cur = ((drawHeading.at % 360) + 360) % 360, diff = ((h - cur + 540) % 360) - 180;
-    if (Math.abs(diff) < 4 && d.style.transform) return;
-    drawHeading.at += diff;
-  }
-  d.style.transform = `rotate(${drawHeading.at.toFixed(1)}deg)`;
+  // the arrow sits on the screen, so add the map's turn; again always the short way round
+  const target = drawHeading.at + bearingNow();
+  if (drawHeading.beam == null) drawHeading.beam = target;
+  else drawHeading.beam += ((target - drawHeading.beam) % 360 + 540) % 360 - 180;
+  d.style.transform = `rotate(${drawHeading.beam.toFixed(1)}deg)`;
 }
 async function toggleCompass(quiet){
   if (quiet === true && compassOn) return;
@@ -609,6 +623,16 @@ $("#bFollow").onclick = () => {
   render();
 };
 $("#bFac").onclick = () => setFacilities(!facVisible);
+// heading-up ⇄ north-up
+$("#bRotate").onclick = () => {
+  S.headingUp = !S.headingUp;
+  if (S.headingUp){
+    toggleCompass(true);                       // inside the tap, so iPhone can ask for the compass
+    S.follow = true; if (S.pos) map.panTo([S.pos.lat, S.pos.lng]);
+    setTimeout(() => { if (S.headingUp && !(compassOn && S.heading != null) && S.moveHeading == null) toast(w().noHeadingYet); }, 2500);
+  }
+  drawHeading(); render();
+};
 // street map ⇄ satellite photo
 $("#bLayer").onclick = () => { map.removeLayer(layers[layer]); layer = layer === "map" ? "sat" : "map"; layers[layer].addTo(map); layers[layer].bringToBack(); render(); };
 /* bottom card: swipe down → it slides away leaving a strip (handle + where to next + distance); swipe up / tap the handle → back */
@@ -802,8 +826,10 @@ function render(){
   const cur = nextStopIndex(), active = S.mode === "running" || S.mode === "paused";
 
   // map buttons — just two, with words
-  [["#bFollow","locate",x.myPos,S.follow],["#bFac","wc",x.facBtn,facVisible],["#bLayer","layers",layer === "map" ? x.sat : x.map,false]].forEach(([id,ic,label,on]) => {
+  [["#bRotate","compass",x.rotateMap,S.headingUp],["#bFollow","locate",x.myPos,S.follow],["#bFac","wc",x.facBtn,facVisible],["#bLayer","layers",layer === "map" ? x.sat : x.map,false]].forEach(([id,ic,label,on]) => {
     const b = $(id); b.innerHTML = icon(ic, 18) + `<span>${esc(label)}</span>`; b.classList.toggle("on", !!on); b.setAttribute("aria-pressed", !!on); });
+  // the compass needle on the button always points to real north
+  const needle = $("#bRotate .ico"); if (needle) needle.style.transform = `rotate(${bearingNow().toFixed(0)}deg)`;
   $("#bSim").innerHTML = icon(simTimer ? "stop" : "sim", 14) + `<span>${esc(simTimer ? x.simOn : x.sim)}</span>`;
   $("#bSim").classList.toggle("on", !!simTimer);
   if (facVisible) renderFacChips();
